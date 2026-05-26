@@ -1,75 +1,93 @@
-import { createCMS, MemoryApiKeyStore, MemoryMediaStore, type CMSInstance } from "@hono-cms/core";
-import { createMemoryDatabase } from "@hono-cms/adapter-memory";
-import { createMemoryStorage } from "@hono-cms/storage-memory";
-import { createMemoryCache } from "@hono-cms/cache";
-import { createCloudflareExport } from "@hono-cms/platform/cloudflare";
+/**
+ * Cloudflare Worker example, migrated to the plugin manifest shape (U25).
+ *
+ * Workers ban module-load side effects (setInterval, fs); the plugin
+ * runtime is structured so factory invocation runs inside the request
+ * lifecycle. The CMS is lazy-instantiated on first request.
+ */
+import { createPluginCMS, type PluginCMSInstance } from "@hono-cms/core";
+import { memoryDatabase } from "@hono-cms/adapter-memory";
+import { memoryStorage } from "@hono-cms/storage-memory";
+import { memoryCache } from "@hono-cms/cache";
+import { memoryJobs } from "@hono-cms/jobs";
+import { jobsRuntime } from "@hono-cms/jobs-runtime";
+import { cors } from "@hono-cms/cors";
+import { tokensAuth } from "@hono-cms/auth-tokens";
+import { rateLimit } from "@hono-cms/rate-limit";
+import { audit } from "@hono-cms/audit";
+import { openapi } from "@hono-cms/openapi";
 import { collections } from "./schema";
 
 export type CloudflareExampleOptions = {
   scheduledHandler?: (cron: string, env: unknown, ctx: unknown) => Promise<void> | void;
+  onBootstrapKey?: (key: string) => void;
 };
 
-export function createCloudflareExampleCMS(options: CloudflareExampleOptions = {}) {
-  return createCMS({
+export async function createCloudflareExampleCMS(options: CloudflareExampleOptions = {}): Promise<PluginCMSInstance<typeof collections>> {
+  return createPluginCMS({
     collections,
-    db: createMemoryDatabase({ provider: "memory", collections }),
-    storage: createMemoryStorage({ provider: "memory" }),
-    cache: createMemoryCache(),
-    mediaStore: new MemoryMediaStore(),
-    apiKeyStore: new MemoryApiKeyStore(),
-    // contentTypeBuilder.writer is intentionally omitted: Cloudflare Workers
-    // have no filesystem, so schema mutation cannot be persisted from here.
-    auth: {
-      tokens: {
-        admin: { userId: "admin_1", roles: ["admin"] },
-        editor: { userId: "editor_1", roles: ["editor"] }
-      }
-    },
-    rbac: { publicRead: true },
-    cors: {
-      origin: true,
-      credentials: true,
-      allowedHeaders: ["authorization", "content-type", "x-requested-with"],
-      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
-    },
-    openapi: {
-      path: "/cms/openapi.json",
-      docs: "/cms/docs",
-      title: "Hono CMS (Cloudflare Worker)",
-      version: "0.1.0",
-      description: "Example CMS served from a Cloudflare Worker runtime."
-    },
-    ...(options.scheduledHandler ? {
-      jobs: {
-        provider: "cloudflare-example",
-        register: () => {},
-        dispatch: async () => {},
-        enqueue: async () => {},
-        verify: async () => true,
-        scheduledHandler: options.scheduledHandler
-      }
-    } : {})
+    db: memoryDatabase({ provider: "memory", collections }),
+    storage: memoryStorage({ provider: "memory" }),
+    plugins: [
+      cors({
+        origin: true,
+        credentials: true,
+        allowedHeaders: ["authorization", "content-type", "x-requested-with"],
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+      }),
+      openapi({
+        title: "Hono CMS (Cloudflare Worker, plugin shape)",
+        version: "0.2.0",
+        description: "Plugin-manifest example served from a Cloudflare Worker."
+      }),
+      memoryCache({}),
+      jobsRuntime({ adapter: memoryJobs({}) }),
+      tokensAuth({
+        ...(options.onBootstrapKey ? { onBootstrapKey: options.onBootstrapKey } : {})
+      }),
+      rateLimit({ mutations: { limit: 100, window: "1m" } }),
+      audit({})
+    ]
   });
 }
 
-export function createCloudflareExampleWorker(options: CloudflareExampleOptions = {}) {
-  return createCloudflareExport(createCloudflareExampleCMS(options));
-}
-
-// Cloudflare Workers forbid async I/O / timers in the global/module scope, so
-// we lazy-instantiate the CMS on the first request rather than at import time.
-// This still exports a default ExportedHandler compatible with `wrangler dev`.
-let cachedCMS: Pick<CMSInstance, "fetch" | "scheduled"> | null = null;
-function getCMS(): Pick<CMSInstance, "fetch" | "scheduled"> {
-  if (!cachedCMS) cachedCMS = createCloudflareExampleCMS();
-  return cachedCMS;
-}
-
-export default {
-  fetch(request: Request, env: unknown, ctx: unknown) {
-    return getCMS().fetch(request, env as never, ctx as never);
-  },
-  scheduled(event: unknown, env: unknown, ctx: unknown) {
-    return getCMS().scheduled(event, env, ctx);
-  }
+export type CloudflareExport = {
+  fetch(request: Request, env: unknown, ctx: unknown): Promise<Response>;
+  scheduled?(event: unknown, env: unknown, ctx: unknown): Promise<void>;
 };
+
+export function createCloudflareExampleWorker(options: CloudflareExampleOptions = {}): CloudflareExport {
+  let cached: PluginCMSInstance<typeof collections> | null = null;
+  let initPromise: Promise<PluginCMSInstance<typeof collections>> | null = null;
+
+  async function get(): Promise<PluginCMSInstance<typeof collections>> {
+    if (cached) return cached;
+    if (!initPromise) initPromise = createCloudflareExampleCMS(options);
+    cached = await initPromise;
+    return cached;
+  }
+
+  return {
+    async fetch(request, _env, _ctx) {
+      const cms = await get();
+      return cms.fetch(request);
+    },
+    ...(options.scheduledHandler
+      ? {
+          async scheduled(event, env, ctx) {
+            const cron = typeof (event as { cron?: unknown }).cron === "string"
+              ? (event as { cron: string }).cron
+              : "";
+            await options.scheduledHandler!(cron, env, ctx);
+          }
+        }
+      : {})
+  };
+}
+
+// Lazy-instantiated default export for `wrangler dev`. The CMS factory runs
+// on the first request — never at module load — so Workers global scope
+// stays free of timers and I/O.
+const defaultExport = createCloudflareExampleWorker();
+
+export default defaultExport;

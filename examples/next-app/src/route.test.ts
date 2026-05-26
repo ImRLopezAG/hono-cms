@@ -1,98 +1,97 @@
-import { describe, expect, test } from "vitest";
-import { createNextRouteHandlers } from "@hono-cms/platform/next";
-import { GET, POST } from "../app/api/cms/[...route]/route";
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { createNextExampleCMS } from "./cms";
 
-describe("Next.js App Router example", () => {
-  test("exports route handlers backed by the CMS Web Request API (with /api/cms basePath strip)", async () => {
-    // Live URL shape: Next mounts the catch-all at /api/cms/[...route], so the
-    // adapter strips that prefix before forwarding to the CMS.
-    const health = await GET(new Request("https://next.test/api/cms/cms/health/live"));
-    expect(health.status).toBe(200);
-    await expect(health.json()).resolves.toMatchObject({ status: "ok" });
+/**
+ * Plugin-shape e2e for the Next.js example.
+ *
+ * We chdir into an ephemeral tmpdir so the auth-tokens bootstrap key
+ * file (written on first boot) lands somewhere disposable. The bootstrap
+ * key itself is captured via the `onBootstrapKey` callback so the test
+ * never reads from disk.
+ *
+ * Requests are driven directly against `cms.fetch(new Request(...))` —
+ * the same Web Request contract the Next.js App Router calls into. This
+ * keeps the test independent of the App Router runtime while still
+ * exercising the same code paths the framework adapter mounts.
+ */
 
-    const created = await POST(new Request("https://next.test/api/cms/api/posts", {
-      method: "POST",
-      headers: {
-        authorization: "Bearer admin",
-        "content-type": "application/json"
-      },
-      body: JSON.stringify({ title: "Next Route Handler", slug: "next-route-handler", body: "Mounted through app/api/cms/[...route]." })
-    }));
-    expect(created.status).toBe(201);
-    const createdPost = await created.json() as { id: string; title: string; status: string };
-    expect(createdPost).toMatchObject({ title: "Next Route Handler", status: "draft" });
+const ORIGIN = "https://next.test";
+let cms: Awaited<ReturnType<typeof createNextExampleCMS>>;
+let bootstrapKey = "";
+let workDir = "";
+let originalCwd = "";
 
-    const publish = await POST(new Request(`https://next.test/api/cms/api/posts/${createdPost.id}/publish`, {
-      method: "POST",
-      headers: { authorization: "Bearer admin" }
-    }));
-    expect(publish.status).toBe(200);
+beforeEach(async () => {
+  workDir = mkdtempSync(join(tmpdir(), "next-app-e2e-"));
+  originalCwd = process.cwd();
+  process.chdir(workDir);
+  bootstrapKey = "";
+  cms = await createNextExampleCMS({ onBootstrapKey: (key) => { bootstrapKey = key; } });
+});
 
-    const list = await GET(new Request("https://next.test/api/cms/api/posts?status=published"));
-    expect(list.status).toBe(200);
-    await expect(list.json()).resolves.toMatchObject({
-      items: [{ id: createdPost.id, title: "Next Route Handler", status: "published" }]
-    });
+afterEach(() => {
+  process.chdir(originalCwd);
+  if (workDir) rmSync(workDir, { recursive: true, force: true });
+});
+
+function call(path: string, init?: RequestInit) {
+  return cms.fetch(new Request(`${ORIGIN}${path}`, init));
+}
+
+describe("Hono CMS on Next.js App Router (plugin shape)", () => {
+  test("liveness endpoint returns 200 OK", async () => {
+    const response = await call("/cms/health/live");
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({ status: "ok" });
   });
 
-  test("creates content types through Next route handlers with generated artifacts", async () => {
-    const writes: Array<{ source: string; name: string; mode: string }> = [];
-    const handlers = createNextRouteHandlers(createNextExampleCMS({
-      contentTypeWriter: {
-        importPath: "@hono-cms/schema",
-        writeCollection(input) {
-          writes.push({ source: input.source, name: input.collection.name, mode: input.mode });
-          return {
-            path: `cms/collections/${input.collection.name}.ts`,
-            artifacts: ["node_modules/.cms/sdk/index.ts"],
-            migrations: [`.hono-cms/migrations/create_${input.collection.name}.sql`],
-            message: "Generated schema artifacts from Next App Router"
-          };
-        }
-      }
-    }));
+  test("OpenAPI plugin exposes the configured title at /cms/openapi.json", async () => {
+    const response = await call("/cms/openapi.json");
+    expect(response.status).toBe(200);
+    const spec = (await response.json()) as { info: { title: string } };
+    expect(spec.info.title).toBe("Hono CMS (Next.js App Router, plugin shape)");
+  });
 
-    const response = await handlers.POST(new Request("https://next.test/cms/content-types", {
+  test("anonymous POST /api/posts returns 401", async () => {
+    const response = await call("/api/posts", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ title: "anon attempt", slug: "anon-attempt" })
+    });
+    expect(response.status).toBe(401);
+  });
+
+  test("authenticated POST /api/posts creates a record with the bootstrap key", async () => {
+    expect(bootstrapKey).toMatch(/^sk_[0-9a-f]{48}$/);
+    const created = await call("/api/posts", {
       method: "POST",
       headers: {
-        authorization: "Bearer admin",
+        authorization: `Bearer ${bootstrapKey}`,
         "content-type": "application/json"
       },
       body: JSON.stringify({
-        name: "products",
-        fields: {
-          title: { kind: "string", required: true, max: 120 },
-          slug: { kind: "uid", targetField: "title" },
-          gallery: { kind: "media", multiple: true },
-          status: { kind: "enum", values: ["draft", "active"] }
-        },
-        options: { draftAndPublish: true }
+        title: "Next plugin post",
+        slug: "next-plugin-post",
+        body: "Created via createPluginCMS over the Next.js App Router."
       })
-    }));
-
-    expect(response.status).toBe(201);
-    await expect(response.json()).resolves.toMatchObject({
-      collection: {
-        name: "products",
-        fields: {
-          title: { kind: "string", required: true, max: 120 },
-          slug: { kind: "uid", targetField: "title" },
-          gallery: { kind: "media", multiple: true },
-          status: { kind: "enum", values: ["draft", "active"] }
-        },
-        options: { draftAndPublish: true }
-      },
-      path: "cms/collections/products.ts",
-      artifacts: ["node_modules/.cms/sdk/index.ts"],
-      migrations: [".hono-cms/migrations/create_products.sql"],
-      message: "Generated schema artifacts from Next App Router"
     });
-    expect(writes).toHaveLength(1);
-    expect(writes[0]).toMatchObject({ name: "products", mode: "create" });
-    expect(writes[0]?.source).toContain("defineCollection(");
-    expect(writes[0]?.source).toContain("\"products\"");
-    expect(writes[0]?.source).toContain("fields.uid({");
-    expect(writes[0]?.source).toContain("\"targetField\": \"title\"");
+    expect(created.status).toBe(201);
+    const post = (await created.json()) as { id: string; title: string };
+    expect(post.title).toBe("Next plugin post");
+  });
+
+  test("CORS preflight returns Access-Control-Allow headers", async () => {
+    const response = await call("/api/posts", {
+      method: "OPTIONS",
+      headers: {
+        Origin: "https://example.com",
+        "Access-Control-Request-Method": "POST",
+        "Access-Control-Request-Headers": "authorization, content-type"
+      }
+    });
+    expect(response.headers.get("access-control-allow-origin")).toBeTruthy();
   });
 });

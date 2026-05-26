@@ -1,9 +1,22 @@
-import { createMemoryDatabase } from "@hono-cms/adapter-memory";
-import { createCMS, MemoryApiKeyStore, MemoryMediaStore, type SchemaWriter } from "@hono-cms/core";
-import { createMemoryStorage } from "@hono-cms/storage-memory";
-import { createMemoryCache } from "@hono-cms/cache";
+/**
+ * Next.js App Router example, migrated to the plugin manifest shape (U25).
+ *
+ * Uses `createPluginCMS` from `@hono-cms/core` — every cross-cutting
+ * concern lands as a plugin entry, instead of legacy `cache:`/`auth:`/`cors:`
+ * config slots. The factory is async because plugin registration is async.
+ */
+import { memoryDatabase } from "@hono-cms/adapter-memory";
+import { createPluginCMS, type PluginCMSInstance } from "@hono-cms/core";
+import { memoryCache } from "@hono-cms/cache";
+import { memoryStorage } from "@hono-cms/storage-memory";
+import { memoryJobs } from "@hono-cms/jobs";
+import { jobsRuntime } from "@hono-cms/jobs-runtime";
+import { cors } from "@hono-cms/cors";
+import { tokensAuth } from "@hono-cms/auth-tokens";
+import { rateLimit } from "@hono-cms/rate-limit";
+import { audit } from "@hono-cms/audit";
+import { openapi } from "@hono-cms/openapi";
 import { defineCollection, defineSchema, fields } from "@hono-cms/schema";
-import { createFileSchemaWriter } from "./schema-writer";
 
 export const nextExampleSchema = defineSchema({
   posts: defineCollection("posts", {
@@ -18,35 +31,37 @@ export const nextExampleSchema = defineSchema({
   })
 });
 
-export function createNextExampleCMS(options: { contentTypeWriter?: SchemaWriter } = {}) {
-  return createCMS({
+export type NextCMSOptions = {
+  /** Optional callback fired with the raw bootstrap key on first boot. */
+  onBootstrapKey?: (key: string) => void;
+};
+
+export async function createNextExampleCMS(
+  options: NextCMSOptions = {}
+): Promise<PluginCMSInstance<typeof nextExampleSchema>> {
+  return createPluginCMS({
     collections: nextExampleSchema,
-    db: createMemoryDatabase({ provider: "memory", collections: nextExampleSchema }),
-    storage: createMemoryStorage({ provider: "memory" }),
-    cache: createMemoryCache(),
-    mediaStore: new MemoryMediaStore(),
-    apiKeyStore: new MemoryApiKeyStore(),
-    auth: { tokens: { admin: { userId: "next-admin", roles: ["admin"] } } },
-    ...(options.contentTypeWriter ? { contentTypeBuilder: { writer: options.contentTypeWriter } } : {}),
-    rbac: { publicRead: true },
-    cors: {
-      origin: true,
-      credentials: true,
-      allowedHeaders: ["authorization", "content-type", "x-requested-with"],
-      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
-    },
-    openapi: {
-      title: "Next App CMS",
-      version: "0.1.0",
-      description: "Next.js App Router example using Web Request route handlers."
-    }
+    db: memoryDatabase({ provider: "memory", collections: nextExampleSchema }),
+    storage: memoryStorage({ provider: "memory" }),
+    plugins: [
+      cors({
+        origin: true,
+        credentials: true,
+        allowedHeaders: ["authorization", "content-type", "x-requested-with"],
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+      }),
+      openapi({
+        title: "Hono CMS (Next.js App Router, plugin shape)",
+        version: "0.2.0",
+        description: "Plugin-manifest example mounted under the Next.js App Router catch-all."
+      }),
+      memoryCache({}),
+      jobsRuntime({ adapter: memoryJobs({}) }),
+      tokensAuth({
+        ...(options.onBootstrapKey ? { onBootstrapKey: options.onBootstrapKey } : {})
+      }),
+      rateLimit({ mutations: { limit: 100, window: "1m" } }),
+      audit({})
+    ]
   });
 }
-
-import { resolve } from "node:path";
-
-const defaultSchemaWriter = createFileSchemaWriter({
-  baseDir: resolve(process.cwd(), "generated-collections")
-});
-
-export const cms = createNextExampleCMS({ contentTypeWriter: defaultSchemaWriter });

@@ -24,9 +24,21 @@
       }
     ],
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"],
+      "@hono-cms/schema": ["../../packages/schema/src/index.ts"],
+      "@hono-cms/core": ["../../packages/core/src/index.ts"],
+      "@hono-cms/adapter-memory": ["../../packages/adapter-memory/src/index.ts"],
+      "@hono-cms/storage-memory": ["../../packages/storage-memory/src/index.ts"],
+      "@hono-cms/cache": ["../../packages/cache/src/index.ts"],
+      "@hono-cms/cors": ["../../packages/cors/src/index.ts"],
+      "@hono-cms/openapi": ["../../packages/openapi/src/index.ts"],
+      "@hono-cms/jobs": ["../../packages/jobs/src/index.ts"],
+      "@hono-cms/jobs-runtime": ["../../packages/jobs-runtime/src/index.ts"],
+      "@hono-cms/auth-tokens": ["../../packages/auth-tokens/src/index.ts"],
+      "@hono-cms/rate-limit": ["../../packages/rate-limit/src/index.ts"],
+      "@hono-cms/audit": ["../../packages/audit/src/index.ts"],
+      "@hono-cms/platform": ["../../packages/platform/src/index.ts"],
+      "@hono-cms/platform/next": ["../../packages/platform/src/next.ts"]
     },
     "esModuleInterop": true
   },
