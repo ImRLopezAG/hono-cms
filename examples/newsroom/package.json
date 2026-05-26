@@ -14,13 +14,22 @@
   },
   "dependencies": {
     "@hono-cms/adapter-memory": "workspace:*",
+    "@hono-cms/audit": "workspace:*",
+    "@hono-cms/auth-tokens": "workspace:*",
     "@hono-cms/cache": "workspace:*",
+    "@hono-cms/content-cache": "workspace:*",
     "@hono-cms/core": "workspace:*",
+    "@hono-cms/cors": "workspace:*",
+    "@hono-cms/drafts": "workspace:*",
     "@hono-cms/jobs": "workspace:*",
+    "@hono-cms/jobs-runtime": "workspace:*",
+    "@hono-cms/media": "workspace:*",
+    "@hono-cms/openapi": "workspace:*",
     "@hono-cms/platform": "workspace:*",
+    "@hono-cms/rate-limit": "workspace:*",
     "@hono-cms/schema": "workspace:*",
     "@hono-cms/storage-memory": "workspace:*",
-    "qs": "^6.15.2"
+    "@hono-cms/webhooks": "workspace:*"
   },
   "devDependencies": {
     "@types/qs": "^6.15.1",

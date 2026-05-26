@@ -9,8 +9,8 @@ export type NewsroomNodeServer = {
 };
 
 export async function startNewsroomNodeServer(): Promise<NewsroomNodeServer> {
-  const cms = createNewsroomCMS();
-  const server = createServer(createNodeHandler(cms));
+  const cms = await createNewsroomCMS();
+  const server = createServer(createNodeHandler({ fetch: cms.fetch.bind(cms) }));
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   const address = server.address();
   if (!address || typeof address === "string") {

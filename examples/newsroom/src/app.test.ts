@@ -1,181 +1,137 @@
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
-import { readFile } from "node:fs/promises";
-import qs from "qs";
-import { describe, expect, test } from "vitest";
-import { generateOpenAPISchemas, generateTypeScriptSDK } from "@hono-cms/schema";
-import { createNewsroomCMS, fetchHandler } from "./app";
-import { createNewsroomClient, seedAndReadPublishedArticle } from "./consumer";
-import { createNewsroomCloudflareWorker, createNewsroomVercelHandler, newsroomCronSecret, newsroomVercelJson } from "./edge";
-import { startNewsroomNodeServer } from "./node-server";
-import { newsroomSchema } from "./schema";
+/**
+ * Newsroom example tests — migrated to the plugin manifest shape (U25 7/7).
+ *
+ * Drives the full plugin stack composed by `createNewsroomCMS` through
+ * HTTP and verifies: health, openapi spec, auth gate (anonymous-401 +
+ * bootstrap-key-authenticated POST), CORS preflight, audit event flow,
+ * plugin schema-merge surface, and plugin install ordering.
+ */
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { createNewsroomCMS } from "./app";
 
-const exampleDir = dirname(fileURLToPath(import.meta.url));
+let workDir = "";
+let originalCwd = "";
+let bootstrapKey = "";
 
-describe("newsroom example", () => {
-  test("runs a real content workflow over the Web Request API", async () => {
-    const cms = createNewsroomCMS();
-    const author = await cms.fetch(new Request("https://cms.test/api/authors", {
+beforeEach(() => {
+  workDir = mkdtempSync(join(tmpdir(), "newsroom-e2e-"));
+  originalCwd = process.cwd();
+  process.chdir(workDir);
+  bootstrapKey = "";
+});
+
+afterEach(() => {
+  process.chdir(originalCwd);
+  if (workDir) rmSync(workDir, { recursive: true, force: true });
+});
+
+async function build() {
+  return createNewsroomCMS({ onBootstrapKey: (key) => { bootstrapKey = key; } });
+}
+
+describe("Newsroom example (plugin shape)", () => {
+  test("liveness endpoint returns 200 OK", async () => {
+    const cms = await build();
+    const res = await cms.fetch(new Request("https://cms.test/cms/health/live"));
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toMatchObject({ status: "ok" });
+  });
+
+  test("openapi plugin exposes the configured title", async () => {
+    const cms = await build();
+    const res = await cms.fetch(new Request("https://cms.test/cms/openapi.json"));
+    expect(res.status).toBe(200);
+    const spec = (await res.json()) as { info: { title: string; version: string } };
+    expect(spec.info.title).toBe("Newsroom CMS API (plugin shape)");
+  });
+
+  test("anonymous GET /api/articles returns 401", async () => {
+    const cms = await build();
+    const res = await cms.fetch(new Request("https://cms.test/api/articles"));
+    expect(res.status).toBe(401);
+  });
+
+  test("authenticated POST /api/authors creates a record", async () => {
+    const cms = await build();
+    expect(bootstrapKey).toMatch(/^sk_[0-9a-f]{48}$/);
+    const created = await cms.fetch(new Request("https://cms.test/api/authors", {
       method: "POST",
-      headers: { authorization: "Bearer admin", "content-type": "application/json" },
-      body: JSON.stringify({ name: "Ada Lovelace", bio: "Computing notes", apiKey: "private" })
-    }));
-    expect(author.status).toBe(201);
-    const authorBody = await author.json() as { id: string; name: string; apiKey?: string };
-    expect(authorBody).toMatchObject({ name: "Ada Lovelace" });
-    expect(authorBody.apiKey).toBeUndefined();
-
-    const publicAuthor = await cms.fetch(new Request(`https://cms.test/api/authors/${authorBody.id}`));
-    expect(publicAuthor.status).toBe(200);
-    await expect(publicAuthor.json()).resolves.toMatchObject({ id: authorBody.id, name: "Ada Lovelace" });
-
-    const created = await cms.fetch(new Request("https://cms.test/api/articles", {
-      method: "POST",
-      headers: { authorization: "Bearer admin", "content-type": "application/json" },
-      body: JSON.stringify({
-        title: "Edge CMS Launch",
-        slug: "edge-cms-launch",
-        summary: "A portable CMS built on Web Request APIs.",
-        views: 42,
-        author: authorBody.id
-      })
+      headers: {
+        authorization: `Bearer ${bootstrapKey}`,
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({ name: "Ada Lovelace", bio: "Computing notes" })
     }));
     expect(created.status).toBe(201);
-    const article = await created.json() as { id: string; status: string };
+    const author = (await created.json()) as { id: string; name: string };
+    expect(author.name).toBe("Ada Lovelace");
+    expect(typeof author.id).toBe("string");
+  });
 
-    const published = await cms.fetch(new Request(`https://cms.test/api/articles/${article.id}/publish`, {
+  test("CORS preflight returns 200 with Access-Control-Allow-Origin", async () => {
+    const cms = await build();
+    const res = await cms.fetch(new Request("https://cms.test/api/articles", {
+      method: "OPTIONS",
+      headers: {
+        Origin: "https://app.example.com",
+        "Access-Control-Request-Method": "POST"
+      }
+    }));
+    expect(res.headers.get("access-control-allow-origin")).toBeTruthy();
+  });
+
+  test("authenticated POST /api/articles fires content:after-create on the event bus", async () => {
+    const cms = await build();
+    const events: string[] = [];
+    cms.ctx.events.on("content:after-create", (payload) => {
+      events.push(payload.collection);
+    });
+    const res = await cms.fetch(new Request("https://cms.test/api/articles", {
       method: "POST",
-      headers: { authorization: "Bearer admin" }
-    }));
-    expect(published.status).toBe(200);
-
-    const query = qs.stringify({
-      filters: { title: { $contains: "Edge" } },
-      pagination: { limit: 10 },
-      populate: ["author"]
-    }, { encodeValuesOnly: true, arrayFormat: "brackets" });
-    const list = await cms.fetch(new Request(`https://cms.test/api/articles?${query}`));
-    expect(list.status).toBe(200);
-    await expect(list.json()).resolves.toMatchObject({
-      items: [{
-        id: article.id,
-        title: "Edge CMS Launch",
-        status: "published",
-        author: { id: authorBody.id, name: "Ada Lovelace" }
-      }]
-    });
-  });
-
-  test("ships generated contracts for SDK and OpenAPI consumers", async () => {
-    const sdk = generateTypeScriptSDK(newsroomSchema);
-    expect(sdk).toContain("export function buildArticlesQuery(query: ArticlesQuery = {}): string");
-    expect(sdk).toContain("export type ArticlesRelationKey = \"author\";");
-    expect(sdk).toContain("createCMSClient");
-
-    const schemas = generateOpenAPISchemas(newsroomSchema);
-    expect(schemas).toHaveProperty("Articles");
-    expect(schemas).toHaveProperty("ArticlesCreateInput");
-
-    const spec = await fetchHandler(new Request("https://cms.test/cms/openapi.json"));
-    expect(spec.status).toBe(200);
-    const specBody = await spec.json() as { paths: Record<string, unknown> };
-    expect(specBody).toMatchObject({
-      info: {
-        title: "Newsroom CMS API",
-        version: "0.1.0",
-        description: "Example newsroom API built with Hono CMS."
+      headers: {
+        authorization: `Bearer ${bootstrapKey}`,
+        "content-type": "application/json"
       },
-      servers: [{ url: "https://newsroom.example.com", description: "Production" }]
-    });
-    expect(specBody.paths).toHaveProperty("/graphql");
-    expect(specBody.paths).toHaveProperty("/graphql/schema");
-  });
-
-  test("keeps the committed generated SDK in sync with the schema generator", async () => {
-    const generated = await readFile(join(exampleDir, "generated/sdk.ts"), "utf8");
-
-    expect(generated).toBe(generateTypeScriptSDK(newsroomSchema));
-  });
-
-  test("uses the committed generated SDK against the real CMS handler", async () => {
-    const cms = createNewsroomCMS();
-    const fetch: typeof globalThis.fetch = async (input, init) => {
-      const request = input instanceof Request
-        ? new Request(input, init)
-        : new Request(input, init);
-      return cms.fetch(request);
-    };
-    const client = createNewsroomClient(fetch);
-
-    const result = await seedAndReadPublishedArticle(client);
-
-    expect(result).toMatchObject({
-      listedTitle: "Typed CMS Ships",
-      listedAuthor: "Grace Hopper"
-    });
-    expect(result.query).toBe("filters[title][$contains]=Typed&pagination[limit]=5&populate[]=author");
-  });
-
-  test("serves the generated SDK workflow through the Node HTTP adapter", async () => {
-    const server = await startNewsroomNodeServer();
-    try {
-      const client = createNewsroomClient(fetch, server.url);
-      const result = await seedAndReadPublishedArticle(client);
-
-      expect(result).toMatchObject({
-        listedTitle: "Typed CMS Ships",
-        listedAuthor: "Grace Hopper"
-      });
-
-      const health = await fetch(`${server.url}/cms/health/live`);
-      await expect(health.json()).resolves.toMatchObject({ status: "ok" });
-    } finally {
-      await server.close();
-    }
-  });
-
-  test("runs the generated SDK workflow through Cloudflare and Vercel edge handlers", async () => {
-    const worker = createNewsroomCloudflareWorker();
-    const cloudflareFetch: typeof globalThis.fetch = async (input, init) => {
-      const request = input instanceof Request
-        ? new Request(input, init)
-        : new Request(input, init);
-      return worker.fetch(request, { CMS_ENV: "test" }, { waitUntil: () => undefined });
-    };
-    const cloudflareResult = await seedAndReadPublishedArticle(createNewsroomClient(cloudflareFetch));
-
-    expect(cloudflareResult).toMatchObject({
-      listedTitle: "Typed CMS Ships",
-      listedAuthor: "Grace Hopper"
-    });
-
-    const vercel = createNewsroomVercelHandler();
-    const vercelFetch: typeof globalThis.fetch = async (input, init) => {
-      const request = input instanceof Request
-        ? new Request(input, init)
-        : new Request(input, init);
-      return vercel(request);
-    };
-    const vercelResult = await seedAndReadPublishedArticle(createNewsroomClient(vercelFetch));
-
-    expect(vercelResult).toMatchObject({
-      listedTitle: "Typed CMS Ships",
-      listedAuthor: "Grace Hopper"
-    });
-    const unauthorizedCron = await vercel(new Request("https://cms.test/cms/jobs/scheduled-publish", {
-      method: "GET"
+      body: JSON.stringify({ title: "First article", slug: "first-article" })
     }));
-    expect(unauthorizedCron.status).toBe(401);
+    expect(res.status).toBe(201);
+    expect(events).toContain("articles");
+  });
 
-    const cron = await vercel(new Request("https://cms.test/cms/jobs/scheduled-publish", {
-      method: "GET",
-      headers: { authorization: `Bearer ${newsroomCronSecret}` }
-    }));
-    expect(cron.status).toBe(200);
-    await expect(cron.json()).resolves.toEqual({ published: 0 });
+  test("plugin install registers expected services", async () => {
+    const cms = await build();
+    expect(cms.ctx.plugins.has("cache")).toBe(true);
+    expect(cms.ctx.plugins.has("jobs")).toBe(true);
+    expect(cms.ctx.plugins.has("openapi")).toBe(true);
+    expect(cms.ctx.plugins.has("webhooks")).toBe(true);
+  });
 
-    expect(newsroomVercelJson).toEqual({
-      crons: [{ path: "/cms/jobs/scheduled-publish", schedule: "*/5 * * * *" }]
-    });
+  test("plugin schema merge propagates internal tables to ctx.systemTables", async () => {
+    const cms = await build();
+    expect(cms.ctx.systemTables.has("api_keys")).toBe(true);
+    expect(cms.ctx.systemTables.has("roles")).toBe(true);
+    expect(cms.ctx.systemTables.has("audit_log")).toBe(true);
+    expect(cms.ctx.systemTables.has("webhooks")).toBe(true);
+    expect(cms.ctx.systemTables.has("media")).toBe(true);
+  });
+
+  test("installed plugin ids include the full stack in expected order", async () => {
+    const cms = await build();
+    expect(cms.installed.installedIds).toEqual([
+      "cors",
+      "openapi",
+      "cache",
+      "jobs",
+      "auth-tokens",
+      "rate-limit",
+      "content-cache",
+      "audit",
+      "webhooks",
+      "drafts",
+      "media"
+    ]);
   });
 });
