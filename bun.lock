@@ -370,6 +370,41 @@
         "vitest": "^4.1.7",
       },
     },
+    "packages/drafts": {
+      "name": "@hono-cms/drafts",
+      "version": "0.1.0",
+      "dependencies": {
+        "@hono-cms/core": "workspace:*",
+        "@hono-cms/schema": "workspace:*",
+        "hono": "^4.12.22",
+      },
+      "devDependencies": {
+        "@hono-cms/adapter-memory": "workspace:*",
+        "@hono-cms/jobs": "workspace:*",
+        "@hono-cms/jobs-runtime": "workspace:*",
+        "vitest": "^4.1.7",
+      },
+      "peerDependencies": {
+        "@hono-cms/jobs-runtime": "workspace:*",
+      },
+    },
+    "packages/graphql": {
+      "name": "@hono-cms/graphql",
+      "version": "0.1.0",
+      "dependencies": {
+        "@apollo/server": "^5.5.1",
+        "@graphql-tools/schema": "^10.0.33",
+        "@hono-cms/core": "workspace:*",
+        "@hono-cms/schema": "workspace:*",
+        "graphql": "^16.14.0",
+        "hono": "^4.12.22",
+      },
+      "devDependencies": {
+        "@hono-cms/adapter-memory": "workspace:*",
+        "@hono-cms/auth-tokens": "workspace:*",
+        "vitest": "^4.1.7",
+      },
+    },
     "packages/i18n": {
       "name": "@hono-cms/i18n",
       "version": "0.1.0",
@@ -420,6 +455,20 @@
       "optionalPeers": [
         "@hono-cms/jobs",
       ],
+    },
+    "packages/media": {
+      "name": "@hono-cms/media",
+      "version": "0.1.0",
+      "dependencies": {
+        "@hono-cms/core": "workspace:*",
+        "hono": "^4.12.22",
+      },
+      "devDependencies": {
+        "@hono-cms/adapter-memory": "workspace:*",
+        "@hono-cms/schema": "workspace:*",
+        "@hono-cms/storage-memory": "workspace:*",
+        "vitest": "^4.1.7",
+      },
     },
     "packages/openapi": {
       "name": "@hono-cms/openapi",
@@ -852,6 +901,8 @@
 
     "@hono-cms/cors": ["@hono-cms/cors@workspace:packages/cors"],
 
+    "@hono-cms/drafts": ["@hono-cms/drafts@workspace:packages/drafts"],
+
     "@hono-cms/example-bun-server": ["@hono-cms/example-bun-server@workspace:examples/bun-server"],
 
     "@hono-cms/example-cloudflare-worker": ["@hono-cms/example-cloudflare-worker@workspace:examples/cloudflare-worker"],
@@ -866,11 +917,15 @@
 
     "@hono-cms/example-vercel-edge": ["@hono-cms/example-vercel-edge@workspace:examples/vercel-edge"],
 
+    "@hono-cms/graphql": ["@hono-cms/graphql@workspace:packages/graphql"],
+
     "@hono-cms/i18n": ["@hono-cms/i18n@workspace:packages/i18n"],
 
     "@hono-cms/jobs": ["@hono-cms/jobs@workspace:packages/jobs"],
 
     "@hono-cms/jobs-runtime": ["@hono-cms/jobs-runtime@workspace:packages/jobs-runtime"],
+
+    "@hono-cms/media": ["@hono-cms/media@workspace:packages/media"],
 
     "@hono-cms/openapi": ["@hono-cms/openapi@workspace:packages/openapi"],
 
