@@ -339,6 +339,19 @@
         "vitest": "^4.1.7",
       },
     },
+    "packages/content-type-builder": {
+      "name": "@hono-cms/content-type-builder",
+      "version": "0.1.0",
+      "dependencies": {
+        "@hono-cms/core": "workspace:*",
+        "@hono-cms/schema": "workspace:*",
+        "hono": "^4.12.22",
+      },
+      "devDependencies": {
+        "@hono-cms/adapter-memory": "workspace:*",
+        "vitest": "^4.1.7",
+      },
+    },
     "packages/core": {
       "name": "@hono-cms/core",
       "version": "0.1.0",
@@ -896,6 +909,8 @@
     "@hono-cms/cli": ["@hono-cms/cli@workspace:packages/cli"],
 
     "@hono-cms/content-cache": ["@hono-cms/content-cache@workspace:packages/content-cache"],
+
+    "@hono-cms/content-type-builder": ["@hono-cms/content-type-builder@workspace:packages/content-type-builder"],
 
     "@hono-cms/core": ["@hono-cms/core@workspace:packages/core"],
 
