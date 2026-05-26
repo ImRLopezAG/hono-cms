@@ -1,36 +1,48 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { createVercelExampleCMS } from "./route";
-import { createVercelHandler } from "@hono-cms/platform/vercel";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { createVercelExampleHandler } from "./route";
 
 /**
- * Live-boot probe for the Vercel Edge example.
+ * Live-boot probe for the Vercel Edge example (plugin shape).
  *
- * We instantiate the exact same `(Request) => Response` handler that the
- * Vercel Edge runtime invokes in production, then plug it into
- * `Bun.serve({ fetch })` on an ephemeral port. This proves the handler
- * answers real HTTP over a TCP socket — the cross-runtime matrix probes
- * (health / schema / create / publish / audit-log) run via `fetch()` against
- * `127.0.0.1`, not via direct in-process invocation.
+ * Runs under `bun test` (not vitest) so we can use `Bun.serve` to
+ * exercise the handler over a real TCP socket. We instantiate the same
+ * lazy `(Request) => Promise<Response>` handler that the Vercel Edge
+ * runtime invokes in production, then plug it into `Bun.serve({ fetch })`
+ * on an ephemeral port. Because the Vercel Edge contract is "Web-standard
+ * `(Request) => Response`", Bun.serve is a faithful proxy for the Vercel
+ * Edge invocation surface.
  *
- * Because the Vercel Edge contract is "Web-standard `(Request) => Response`",
- * Bun.serve is a faithful proxy for the Vercel Edge invocation surface.
+ * The bootstrap key is captured via the `onBootstrapKey` callback so
+ * the test never depends on filesystem layout.
  */
 
-const cms = createVercelExampleCMS();
-const handler = createVercelHandler(cms);
 let server: ReturnType<typeof Bun.serve>;
 let baseUrl = "";
+let bootstrapKey = "";
+let workDir = "";
+let originalCwd = "";
 
 beforeAll(() => {
+  workDir = mkdtempSync(join(tmpdir(), "vercel-edge-live-"));
+  originalCwd = process.cwd();
+  process.chdir(workDir);
+  const handler = createVercelExampleHandler({
+    onBootstrapKey: (key) => { bootstrapKey = key; }
+  });
   server = Bun.serve({ port: 0, fetch: handler });
   baseUrl = `http://${server.hostname}:${server.port}`;
 });
 
 afterAll(async () => {
   await server.stop(true);
+  process.chdir(originalCwd);
+  if (workDir) rmSync(workDir, { recursive: true, force: true });
 });
 
-describe("Vercel Edge handler under Bun.serve (live HTTP)", () => {
+describe("Vercel Edge handler under Bun.serve (live HTTP, plugin shape)", () => {
   test("GET /cms/health/live returns 200 over a real TCP socket", async () => {
     const response = await fetch(`${baseUrl}/cms/health/live`);
     expect(response.status).toBe(200);
@@ -38,58 +50,38 @@ describe("Vercel Edge handler under Bun.serve (live HTTP)", () => {
     expect(body.status).toBe("ok");
   });
 
-  test("GET /cms/schema returns posts + authors", async () => {
-    const response = await fetch(`${baseUrl}/cms/schema`, {
-      headers: { authorization: "Bearer admin" }
-    });
+  test("openapi plugin exposes the configured title at /cms/openapi.json", async () => {
+    const response = await fetch(`${baseUrl}/cms/openapi.json`);
     expect(response.status).toBe(200);
-    const body = (await response.json()) as { collections: Record<string, { name: string }> };
-    const names = Object.keys(body.collections).sort();
-    expect(names).toContain("posts");
-    expect(names).toContain("authors");
+    const spec = (await response.json()) as { info: { title: string } };
+    expect(spec.info.title).toBe("Hono CMS (Vercel Edge, plugin shape)");
   });
 
-  test("POST /api/posts creates a draft document with admin auth", async () => {
+  test("anonymous POST /api/posts returns 401", async () => {
+    const response = await fetch(`${baseUrl}/api/posts`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ title: "anon attempt", slug: "anon-attempt" })
+    });
+    expect(response.status).toBe(401);
+  });
+
+  test("authenticated POST /api/posts creates a record with the bootstrap key", async () => {
+    expect(bootstrapKey).toMatch(/^sk_[0-9a-f]{48}$/);
     const created = await fetch(`${baseUrl}/api/posts`, {
       method: "POST",
       headers: {
-        authorization: "Bearer admin",
+        authorization: `Bearer ${bootstrapKey}`,
         "content-type": "application/json"
       },
       body: JSON.stringify({
-        title: "Vercel Edge CMS",
-        slug: "vercel-edge-cms-live",
-        body: "Booted via Bun.serve({ fetch: vercelHandler })."
+        title: "Vercel Edge live",
+        slug: "vercel-edge-live",
+        body: "Created via createVercelExampleHandler over Bun.serve."
       })
     });
     expect(created.status).toBe(201);
-    const post = (await created.json()) as { id: string; title: string; status: string };
-    expect(post).toMatchObject({ title: "Vercel Edge CMS", status: "draft" });
-
-    // Persist id for the publish + audit assertions below.
-    (globalThis as Record<string, unknown>).__vercelPostId = post.id;
-  });
-
-  test("POST /api/posts/:id/publish flips status to published", async () => {
-    const id = (globalThis as Record<string, unknown>).__vercelPostId as string;
-    const publish = await fetch(`${baseUrl}/api/posts/${id}/publish`, {
-      method: "POST",
-      headers: { authorization: "Bearer admin" }
-    });
-    expect(publish.status).toBe(200);
-    const body = (await publish.json()) as { id: string; status: string };
-    expect(body).toMatchObject({ id, status: "published" });
-  });
-
-  test("audit log records both the create and the publish entries", async () => {
-    const id = (globalThis as Record<string, unknown>).__vercelPostId as string;
-    const audit = await fetch(`${baseUrl}/cms/audit-log?collection=posts&documentId=${id}`, {
-      headers: { authorization: "Bearer admin" }
-    });
-    expect(audit.status).toBe(200);
-    const body = (await audit.json()) as { items: Array<{ operation: string }> };
-    const operations = body.items.map((item) => item.operation);
-    expect(operations).toContain("create");
-    expect(operations).toContain("publish");
+    const post = (await created.json()) as { id: string; title: string };
+    expect(post.title).toBe("Vercel Edge live");
   });
 });

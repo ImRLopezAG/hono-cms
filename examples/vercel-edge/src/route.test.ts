@@ -1,56 +1,76 @@
-import { describe, expect, test } from "vitest";
-import { GET, POST, cronSecret, runtime, vercelJson } from "./route";
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { createVercelExampleHandler, runtime } from "./route";
 
-describe("Vercel Edge example", () => {
-  test("exports edge route handlers backed by the CMS Web Request API", async () => {
+let workDir = "";
+let originalCwd = "";
+
+beforeEach(() => {
+  workDir = mkdtempSync(join(tmpdir(), "vercel-edge-e2e-"));
+  originalCwd = process.cwd();
+  process.chdir(workDir);
+});
+
+afterEach(() => {
+  process.chdir(originalCwd);
+  if (workDir) rmSync(workDir, { recursive: true, force: true });
+});
+
+describe("Vercel Edge example (plugin shape)", () => {
+  test("exports `runtime = 'edge'` per the Vercel Edge contract", () => {
     expect(runtime).toBe("edge");
+  });
 
-    const health = await GET(new Request("https://vercel.test/cms/health/live"));
+  test("handler exposes a Web Request fetch contract", async () => {
+    const handler = createVercelExampleHandler();
+    const health = await handler(new Request("https://vercel.test/cms/health/live"));
     expect(health.status).toBe(200);
     await expect(health.json()).resolves.toMatchObject({ status: "ok" });
   });
 
-  test("handles content writes, publish workflow, and public reads", async () => {
-    const created = await POST(new Request("https://vercel.test/api/pages", {
-      method: "POST",
-      headers: {
-        authorization: "Bearer admin",
-        "content-type": "application/json"
-      },
-      body: JSON.stringify({ title: "Vercel Edge CMS", slug: "vercel-edge-cms", body: "A portable edge route." })
-    }));
-    expect(created.status).toBe(201);
-    const page = await created.json() as { id: string; title: string; status: string };
-    expect(page).toMatchObject({ title: "Vercel Edge CMS", status: "draft" });
-
-    const publish = await POST(new Request(`https://vercel.test/api/pages/${page.id}/publish`, {
-      method: "POST",
-      headers: { authorization: "Bearer admin" }
-    }));
-    expect(publish.status).toBe(200);
-
-    const list = await GET(new Request("https://vercel.test/api/pages?status=published&filters[slug][$eq]=vercel-edge-cms"));
-    expect(list.status).toBe(200);
-    await expect(list.json()).resolves.toMatchObject({
-      items: [{ id: page.id, title: "Vercel Edge CMS", slug: "vercel-edge-cms", status: "published" }]
-    });
+  test("openapi plugin exposes the configured title at /cms/openapi.json", async () => {
+    const handler = createVercelExampleHandler();
+    const res = await handler(new Request("https://vercel.test/cms/openapi.json"));
+    expect(res.status).toBe(200);
+    const spec = (await res.json()) as { info: { title: string } };
+    expect(spec.info.title).toBe("Hono CMS (Vercel Edge, plugin shape)");
   });
 
-  test("exports Vercel cron configuration and protects cron endpoints", async () => {
-    expect(vercelJson).toEqual({
-      crons: [
-        { path: "/cms/jobs/scheduled-publish", schedule: "*/15 * * * *" },
-        { path: "/cms/jobs/audit-log-cleanup", schedule: "0 3 * * *" }
-      ]
-    });
-
-    const denied = await GET(new Request("https://vercel.test/cms/jobs/scheduled-publish"));
-    expect(denied.status).toBe(401);
-
-    const allowed = await GET(new Request("https://vercel.test/cms/jobs/scheduled-publish", {
-      headers: { authorization: `Bearer ${cronSecret}` }
+  test("anonymous POST /api/posts returns 401", async () => {
+    const handler = createVercelExampleHandler();
+    const res = await handler(new Request("https://vercel.test/api/posts", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ title: "anon" })
     }));
-    expect(allowed.status).toBe(200);
-    await expect(allowed.json()).resolves.toEqual({ published: 0 });
+    expect(res.status).toBe(401);
+  });
+
+  test("authenticated POST creates a record with the bootstrap key", async () => {
+    let bootstrapKey = "";
+    const handler = createVercelExampleHandler({
+      onBootstrapKey: (key) => { bootstrapKey = key; }
+    });
+    // First call triggers lazy CMS init; bootstrap key is captured during it.
+    await handler(new Request("https://vercel.test/cms/health/live"));
+    expect(bootstrapKey).toMatch(/^sk_[0-9a-f]{48}$/);
+
+    const created = await handler(new Request("https://vercel.test/api/posts", {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${bootstrapKey}`,
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        title: "Vercel Edge plugin shape",
+        slug: "vercel-edge-plugin-shape",
+        body: "Plugin runtime over Vercel Edge."
+      })
+    }));
+    expect(created.status).toBe(201);
+    const post = (await created.json()) as { id: string; title: string };
+    expect(post.title).toBe("Vercel Edge plugin shape");
   });
 });

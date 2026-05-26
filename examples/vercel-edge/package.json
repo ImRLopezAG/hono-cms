@@ -14,10 +14,15 @@
   },
   "dependencies": {
     "@hono-cms/adapter-memory": "workspace:*",
+    "@hono-cms/audit": "workspace:*",
+    "@hono-cms/auth-tokens": "workspace:*",
     "@hono-cms/cache": "workspace:*",
     "@hono-cms/core": "workspace:*",
+    "@hono-cms/cors": "workspace:*",
     "@hono-cms/jobs": "workspace:*",
-    "@hono-cms/platform": "workspace:*",
+    "@hono-cms/jobs-runtime": "workspace:*",
+    "@hono-cms/openapi": "workspace:*",
+    "@hono-cms/rate-limit": "workspace:*",
     "@hono-cms/schema": "workspace:*",
     "@hono-cms/storage-memory": "workspace:*"
   },

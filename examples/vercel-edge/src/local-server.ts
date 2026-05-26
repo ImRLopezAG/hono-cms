@@ -1,19 +1,20 @@
 import { handler } from "./route";
 
 /**
- * Live-boot launcher for the Vercel Edge example.
+ * Live-boot launcher for the Vercel Edge example (plugin shape).
  *
- * `vercel dev` would be the canonical way to exercise this example end-to-end,
+ * `vercel dev` would be the canonical way to exercise this end-to-end,
  * but it requires the Vercel CLI to be installed locally. Since the Vercel
- * Edge route handler exported by `route.ts` is a Web standard
- * `(Request) => Response | Promise<Response>` — by the contract Vercel itself
- * documents for Edge functions — we can plug it directly into `Bun.serve` and
- * exercise the same handler over a real TCP socket. The Bun runtime is
- * Web-standard compliant for `Request`/`Response`, so this is a faithful
- * proxy for the Vercel Edge invocation contract.
+ * Edge route handler is a Web standard `(Request) => Promise<Response>` —
+ * by the contract Vercel itself documents for Edge functions — we can
+ * plug it directly into `Bun.serve` and exercise the same handler over a
+ * real TCP socket. The Bun runtime is Web-standard compliant for
+ * `Request`/`Response`, so this is a faithful proxy for the Vercel Edge
+ * invocation contract.
  *
- * No adapter, no shim: the same `handler` function that Vercel would call in
- * production is what answers HTTP here.
+ * The handler returned by `createVercelExampleHandler` lazily boots the
+ * CMS on first request, so module-load side effects stay zero — matching
+ * the Edge runtime constraint.
  */
 const port = Number(process.env.PORT ?? 8793);
 
