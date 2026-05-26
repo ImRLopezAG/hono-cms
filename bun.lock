@@ -340,6 +340,26 @@
         "@upstash/qstash": "^2.11.0",
       },
     },
+    "packages/jobs-runtime": {
+      "name": "@hono-cms/jobs-runtime",
+      "version": "0.1.0",
+      "dependencies": {
+        "@hono-cms/core": "workspace:*",
+        "hono": "^4.12.22",
+      },
+      "devDependencies": {
+        "@hono-cms/adapter-memory": "workspace:*",
+        "@hono-cms/jobs": "workspace:*",
+        "@hono-cms/schema": "workspace:*",
+        "vitest": "^4.1.7",
+      },
+      "peerDependencies": {
+        "@hono-cms/jobs": "workspace:*",
+      },
+      "optionalPeers": [
+        "@hono-cms/jobs",
+      ],
+    },
     "packages/openapi": {
       "name": "@hono-cms/openapi",
       "version": "0.1.0",
@@ -736,6 +756,8 @@
     "@hono-cms/example-vercel-edge": ["@hono-cms/example-vercel-edge@workspace:examples/vercel-edge"],
 
     "@hono-cms/jobs": ["@hono-cms/jobs@workspace:packages/jobs"],
+
+    "@hono-cms/jobs-runtime": ["@hono-cms/jobs-runtime@workspace:packages/jobs-runtime"],
 
     "@hono-cms/openapi": ["@hono-cms/openapi@workspace:packages/openapi"],
 

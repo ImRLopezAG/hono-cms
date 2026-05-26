@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import { createCMS } from "@hono-cms/core";
 import { createMemoryDatabase } from "../../../adapter-memory/src/index";
 import { defineCollection, defineSchema, fields } from "../../../schema/src/index";
-import { CloudflareJobsAdapter, createCloudflareJobs, createNoneJobs, createQStashJobs, createVercelJobs, generateVercelJson, JobsConfigError, QStashJobsAdapter, VercelJobsAdapter, type QStashClientLike } from "../index";
+import { CloudflareJobsAdapter, cloudflareJobs, createCloudflareJobs, createNoneJobs, createQStashJobs, createVercelJobs, generateVercelJson, JobsConfigError, memoryJobs, MemoryJobsAdapter, noneJobs, NoneJobsAdapter, QStashJobsAdapter, qstashJobs, VercelJobsAdapter, vercelJobs, type QStashClientLike } from "../index";
 
 const collections = defineSchema({
   articles: defineCollection("articles", {
@@ -20,6 +20,47 @@ afterEach(() => {
   delete process.env.QSTASH_NEXT_SIGNING_KEY;
   delete process.env.QSTASH_URL;
   delete process.env.DEV_SKIP_JOB_SIGNATURE;
+});
+
+describe("@hono-cms/jobs — explicit factory exports (U12)", () => {
+  test("memoryJobs({}) returns a JobsAdapter", () => {
+    const adapter = memoryJobs({});
+    expect(adapter).toBeInstanceOf(MemoryJobsAdapter);
+    expect(adapter.provider).toBe("memory");
+  });
+
+  test("noneJobs({}) returns a disabled JobsAdapter", () => {
+    const adapter = noneJobs({});
+    expect(adapter).toBeInstanceOf(NoneJobsAdapter);
+    expect(adapter.provider).toBe("none");
+  });
+
+  test("qstashJobs(config) returns a QStash JobsAdapter", () => {
+    const adapter = qstashJobs({
+      token: "token",
+      baseUrl: "https://cms.example.com",
+      currentSigningKey: "current",
+      nextSigningKey: "next",
+      client: {
+        publishJSON: vi.fn(async () => ({})),
+        schedules: { list: vi.fn(async () => []), create: vi.fn(async () => ({})) }
+      }
+    });
+    expect(adapter).toBeInstanceOf(QStashJobsAdapter);
+    expect(adapter.provider).toBe("qstash");
+  });
+
+  test("cloudflareJobs(config) returns a Cloudflare JobsAdapter", () => {
+    const adapter = cloudflareJobs({ cronOnly: true });
+    expect(adapter).toBeInstanceOf(CloudflareJobsAdapter);
+    expect(adapter.provider).toBe("cloudflare");
+  });
+
+  test("vercelJobs(config) returns a Vercel JobsAdapter", () => {
+    const adapter = vercelJobs({ secret: "secret", cronOnly: true });
+    expect(adapter).toBeInstanceOf(VercelJobsAdapter);
+    expect(adapter.provider).toBe("vercel");
+  });
 });
 
 describe("@hono-cms/jobs", () => {

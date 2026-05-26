@@ -538,6 +538,40 @@ function scheduleIdentity(schedule: QStashScheduleLike): { destination: string |
   };
 }
 
+// ---------------------------------------------------------------------------
+// Explicit factory exports (Plan-15 U12 — explicit composition).
+//
+// These are the preferred way to construct a `JobsAdapter` once Phase-3 of the
+// plugin-system refactor lands: `jobsRuntime({ adapter: memoryJobs({}) })`.
+// They are thin wrappers around the existing `create*Jobs` constructors so
+// callers can adopt the new naming without losing the legacy provider-resolver
+// flow that `createCMS({ jobs: { provider: "memory" } })` still relies on.
+//
+// The `registerProvider` side effects below keep the legacy `jobs: { provider }`
+// resolution working until `packages/core/src/create-cms.ts` deletes the jobs
+// block (U12 follow-up — see plan §U12).
+// ---------------------------------------------------------------------------
+
+export function memoryJobs(_config: MemoryJobsConfig | Record<string, unknown> = {}): MemoryJobsAdapter {
+  return createMemoryJobs();
+}
+
+export function noneJobs(_config: NoneJobsConfig | Record<string, unknown> = {}): NoneJobsAdapter {
+  return createNoneJobs();
+}
+
+export function qstashJobs(config: Omit<QStashJobsConfig, "provider"> & { provider?: "qstash" }): QStashJobsAdapter {
+  return createQStashJobs({ ...config, provider: "qstash" });
+}
+
+export function cloudflareJobs(config: Omit<CloudflareJobsConfig, "provider"> & { provider?: "cloudflare" } = {}): CloudflareJobsAdapter {
+  return createCloudflareJobs({ ...config, provider: "cloudflare" });
+}
+
+export function vercelJobs(config: Omit<VercelJobsConfig, "provider"> & { provider?: "vercel" } = {}): VercelJobsAdapter {
+  return createVercelJobs({ ...config, provider: "vercel" });
+}
+
 registerProvider<MemoryJobsConfig, JobsAdapter>("jobs", "memory", createMemoryJobs);
 registerProvider<NoneJobsConfig, JobsAdapter>("jobs", "none", createNoneJobs);
 registerProvider<QStashJobsConfig, JobsAdapter>("jobs", "qstash", createQStashJobs);
