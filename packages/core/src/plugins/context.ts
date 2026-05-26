@@ -8,11 +8,11 @@ import type { PluginContext, PluginTableDef } from "./types";
 export type PluginContextInit<Collections extends CMSCollections> = {
   collections: Collections;
   db: DatabaseAdapter<Collections>;
-  storage?: StorageAdapter;
-  mediaStore?: MediaStore;
-  env?: Record<string, unknown>;
-  baseUrl?: string;
-  systemTables?: ReadonlyMap<string, PluginTableDef>;
+  storage?: StorageAdapter | undefined;
+  mediaStore?: MediaStore | undefined;
+  env?: Record<string, unknown> | undefined;
+  baseUrl?: string | undefined;
+  systemTables?: ReadonlyMap<string, PluginTableDef> | undefined;
 };
 
 export function createPluginContext<Collections extends CMSCollections>(

@@ -1,15 +1,23 @@
-import { createMemoryDatabase } from "@hono-cms/adapter-memory";
-import { createCMS, MemoryApiKeyStore, MemoryMediaStore } from "@hono-cms/core";
-import { createMemoryCache } from "@hono-cms/cache";
-import { createMemoryJobs } from "@hono-cms/jobs";
-import { createMemoryStorage } from "@hono-cms/storage-memory";
+/**
+ * Bun-native example, migrated to the plugin manifest shape (U25).
+ *
+ * Uses `createPluginCMS` from `@hono-cms/core` — the plugin runtime
+ * kernel. No more `cache:`/`jobs:`/`auth:`/`cors:` config slots; every
+ * cross-cutting concern lands as a plugin entry.
+ */
+import { memoryDatabase } from "@hono-cms/adapter-memory";
+import { createPluginCMS, type PluginCMSInstance } from "@hono-cms/core";
+import { memoryCache } from "@hono-cms/cache";
+import { memoryStorage } from "@hono-cms/storage-memory";
+import { memoryJobs } from "@hono-cms/jobs";
+import { jobsRuntime } from "@hono-cms/jobs-runtime";
+import { cors } from "@hono-cms/cors";
+import { tokensAuth } from "@hono-cms/auth-tokens";
+import { rateLimit } from "@hono-cms/rate-limit";
+import { audit } from "@hono-cms/audit";
+import { openapi } from "@hono-cms/openapi";
 import { defineCollection, defineSchema, fields } from "@hono-cms/schema";
 
-/**
- * Schema for the Bun-native example: a blog with posts (draft/publish workflow)
- * and authors (always-live). Mirrors the shape of the other cross-runtime
- * examples so the matrix doc can compare runtimes apples-to-apples.
- */
 export const bunExampleSchema = defineSchema({
   posts: defineCollection("posts", {
     title: fields.string({ required: true }),
@@ -22,39 +30,35 @@ export const bunExampleSchema = defineSchema({
   })
 });
 
-/**
- * Build a fresh CMS wired up with every "memory" provider in the workspace so
- * the example boots without any external services. Real deployments swap each
- * adapter for its production counterpart (Postgres / R2 / Upstash / QStash).
- */
-export function createBunExampleCMS() {
-  return createCMS({
+export type BunCMSOptions = {
+  /** Optional callback fired with the raw bootstrap key on first boot. */
+  onBootstrapKey?: (key: string) => void;
+};
+
+export async function createBunExampleCMS(opts: BunCMSOptions = {}): Promise<PluginCMSInstance<typeof bunExampleSchema>> {
+  return createPluginCMS({
     collections: bunExampleSchema,
-    db: createMemoryDatabase({ provider: "memory", collections: bunExampleSchema }),
-    storage: createMemoryStorage({ provider: "memory" }),
-    cache: createMemoryCache(),
-    jobs: createMemoryJobs(),
-    mediaStore: new MemoryMediaStore(),
-    apiKeyStore: new MemoryApiKeyStore(),
-    auth: {
-      tokens: {
-        admin: { userId: "bun-admin", roles: ["admin"] },
-        editor: { userId: "bun-editor", roles: ["editor"] }
-      }
-    },
-    rbac: { publicRead: true },
-    cors: {
-      origin: true,
-      credentials: true,
-      allowedHeaders: ["authorization", "content-type", "x-requested-with"],
-      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
-    },
-    openapi: {
-      title: "Hono CMS (Bun.serve)",
-      version: "0.1.0",
-      description: "Example CMS booted directly by Bun.serve({ fetch }) — no third-party framework."
-    }
+    db: memoryDatabase({ provider: "memory", collections: bunExampleSchema }),
+    storage: memoryStorage({ provider: "memory" }),
+    plugins: [
+      cors({
+        origin: true,
+        credentials: true,
+        allowedHeaders: ["authorization", "content-type", "x-requested-with"],
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+      }),
+      openapi({
+        title: "Hono CMS (Bun.serve, plugin shape)",
+        version: "0.2.0",
+        description: "Plugin-manifest example, booted directly by Bun.serve({ fetch })."
+      }),
+      memoryCache({}),
+      jobsRuntime({ adapter: memoryJobs({}) }),
+      tokensAuth({
+        ...(opts.onBootstrapKey ? { onBootstrapKey: opts.onBootstrapKey } : {})
+      }),
+      rateLimit({ mutations: { limit: 100, window: "1m" } }),
+      audit({})
+    ]
   });
 }
-
-export const cms = createBunExampleCMS();

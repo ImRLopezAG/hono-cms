@@ -1,11 +1,14 @@
-import { cms } from "./cms";
+import { createBunExampleCMS } from "./cms";
 
 /**
- * The whole point of this example: `cms.fetch` is a Web standard
- * `(Request) => Response | Promise<Response>` handler, which is exactly what
- * `Bun.serve({ fetch })` accepts. No adapter, no shim, no third-party framework.
+ * `createPluginCMS` is async because plugin install ordering, schema
+ * merging, and the `app(app, ctx)` lifecycle hook all happen inside
+ * `installPlugins`. We resolve the CMS up front, then hand its `fetch`
+ * to `Bun.serve` — the runtime contract is the same Web standard
+ * handler the legacy kernel produced.
  */
 const port = Number(process.env.PORT ?? 8791);
+const cms = await createBunExampleCMS();
 
 const server = Bun.serve({
   port,

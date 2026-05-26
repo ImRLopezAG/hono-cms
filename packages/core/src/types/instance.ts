@@ -4,7 +4,16 @@ import type { AuthAdapter, CacheAdapter, DatabaseAdapter, JobsAdapter, StorageAd
 
 export type HonoCMSEnv = {
   Variables: {
+    /**
+     * Legacy session slot, written by the in-core AuthAdapter path
+     * (deletion target — U23). New code reads `identity` instead.
+     */
     session: { userId: string; roles: string[] } | null;
+    /**
+     * Opaque identity set by the installed AuthPlugin's `protected`
+     * middleware. Core treats it as `unknown`; plugins narrow it.
+     */
+    identity: unknown;
   };
 };
 

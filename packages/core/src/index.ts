@@ -1,4 +1,6 @@
 export { createCMS } from "./create-cms";
+export { createPluginCMS } from "./create-plugin-cms";
+export type { PluginCMSConfig, PluginCMSInstance } from "./create-plugin-cms";
 export { apiKeyPrefix, createApiKeyAuth, createStaticTokenAuth, generateApiKeySecret, hashApiKey, MemoryApiKeyStore, readBearerToken } from "./auth";
 export { createBetterAuth, createBetterAuthAdapter, isAuthConfig, toBetterAuthDatabaseProvider } from "./auth/better-auth";
 export { authTablesToSnapshot, createAuthSchemaSnapshot, getAuthSchema } from "./auth/schema";
