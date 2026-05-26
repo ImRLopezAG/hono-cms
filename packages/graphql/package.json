@@ -1,0 +1,31 @@
+{
+  "name": "@hono-cms/graphql",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsdown --config tsdown.config.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "lint": "tsc --noEmit",
+    "clean": "rm -rf dist coverage"
+  },
+  "dependencies": {
+    "@apollo/server": "^5.5.1",
+    "@graphql-tools/schema": "^10.0.33",
+    "@hono-cms/core": "workspace:*",
+    "@hono-cms/schema": "workspace:*",
+    "graphql": "^16.14.0",
+    "hono": "^4.12.22"
+  },
+  "devDependencies": {
+    "@hono-cms/adapter-memory": "workspace:*",
+    "@hono-cms/auth-tokens": "workspace:*",
+    "vitest": "^4.1.7"
+  }
+}
