@@ -1,0 +1,26 @@
+{
+  "name": "@hono-cms/schema",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    },
+    "./schema-compiler": {
+      "types": "./dist/schema-compiler.d.mts",
+      "import": "./dist/schema-compiler.mjs"
+    },
+    "./drizzle-generator": {
+      "types": "./dist/drizzle-generator.d.mts",
+      "import": "./dist/drizzle-generator.mjs"
+    }
+  },
+  "scripts": {
+    "build": "tsdown src/index.ts src/schema-compiler.ts src/drizzle-generator.ts --dts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "tsc --noEmit",
+    "clean": "rm -rf dist coverage"
+  }
+}

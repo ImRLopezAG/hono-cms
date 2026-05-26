@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "module": "Preserve",
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "paths": {
+      "@hono-cms/schema": ["./packages/schema/src/index.ts"],
+      "@hono-cms/schema/schema-compiler": ["./packages/schema/src/schema-compiler.ts"],
+      "@hono-cms/schema/drizzle-generator": ["./packages/schema/src/drizzle-generator.ts"],
+      "@hono-cms/core": ["./packages/core/src/index.ts"],
+      "@hono-cms/adapter-kit": ["./packages/adapter-kit/src/index.ts"],
+      "@hono-cms/adapter-memory": ["./packages/adapter-memory/src/index.ts"],
+      "@hono-cms/adapter-d1": ["./packages/adapter-d1/src/index.ts"],
+      "@hono-cms/adapter-postgres": ["./packages/adapter-postgres/src/index.ts"],
+      "@hono-cms/adapter-turso": ["./packages/adapter-turso/src/index.ts"],
+      "@hono-cms/adapter-convex": ["./packages/adapter-convex/src/index.ts"],
+      "@hono-cms/storage-memory": ["./packages/storage-memory/src/index.ts"],
+      "@hono-cms/storage-local": ["./packages/storage-local/src/index.ts"],
+      "@hono-cms/storage-r2": ["./packages/storage-r2/src/index.ts"],
+      "@hono-cms/storage-s3": ["./packages/storage-s3/src/index.ts"],
+      "@hono-cms/storage-vercel-blob": ["./packages/storage-vercel-blob/src/index.ts"],
+      "@hono-cms/cache": ["./packages/cache/src/index.ts"],
+      "@hono-cms/jobs": ["./packages/jobs/src/index.ts"],
+      "@hono-cms/platform": ["./packages/platform/src/index.ts"],
+      "@hono-cms/platform/cloudflare": ["./packages/platform/src/cloudflare.ts"],
+      "@hono-cms/platform/next": ["./packages/platform/src/next.ts"],
+      "@hono-cms/platform/node": ["./packages/platform/src/node.ts"],
+      "@hono-cms/platform/vercel": ["./packages/platform/src/vercel.ts"],
+      "@hono-cms/cli": ["./packages/cli/src/index.ts"]
+    }
+  }
+}

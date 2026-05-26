@@ -1,0 +1,29 @@
+{
+  "name": "@hono-cms/example-newsroom",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "generate:sdk": "bun ../../packages/cli/src/index.ts schema generate --schema src/schema.ts --out src/generated/sdk.ts",
+    "check:sdk": "bun ../../packages/cli/src/index.ts schema check-sdk --schema src/schema.ts --out src/generated/sdk.ts",
+    "typecheck": "bun run check:sdk && tsc --noEmit",
+    "test": "vitest run",
+    "lint": "tsc --noEmit",
+    "clean": "rm -rf dist coverage"
+  },
+  "dependencies": {
+    "@hono-cms/adapter-memory": "workspace:*",
+    "@hono-cms/cache": "workspace:*",
+    "@hono-cms/core": "workspace:*",
+    "@hono-cms/jobs": "workspace:*",
+    "@hono-cms/platform": "workspace:*",
+    "@hono-cms/schema": "workspace:*",
+    "@hono-cms/storage-memory": "workspace:*",
+    "qs": "^6.15.2"
+  },
+  "devDependencies": {
+    "@types/qs": "^6.15.1",
+    "vitest": "^4.0.0"
+  }
+}

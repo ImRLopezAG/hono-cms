@@ -1,0 +1,232 @@
+/* ============================================================ */
+/* Admin Shell — Editorial Design Language                         */
+/* Shared page chrome, button system, and data primitives.         */
+/* Same palette + type scale as the schema visualizer.             */
+/* ============================================================ */
+
+.hcms-page {
+  --hcms-ink: #0b0d12;
+  --hcms-ink-dim: #475569;
+  --hcms-ink-mute: #64748b;
+  --hcms-faint: #94a3b8;
+  --hcms-line: #e2e8f0;
+  --hcms-line-strong: #cbd5e1;
+  --hcms-bg: #fcfcfd;
+  --hcms-bg-soft: #f8fafc;
+  --hcms-accent: #4f46e5;
+  --hcms-accent-soft: #eef2ff;
+  --hcms-accent-ink: #312e81;
+  --hcms-ok: #16a34a;
+  --hcms-ok-bg: #dcfce7;
+  --hcms-ok-ink: #166534;
+  --hcms-warn: #92400e;
+  --hcms-warn-bg: #fef3c7;
+  --hcms-danger: #b91c1c;
+  --hcms-danger-bg: #fee2e2;
+
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  font-family: "Inter Variable", Inter, system-ui, sans-serif;
+  color: var(--hcms-ink);
+}
+
+/* PAGE HEADER ---------------------------------------------------- */
+
+.hcms-page-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--hcms-line);
+}
+.hcms-page-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--hcms-faint);
+  margin: 0 0 6px;
+}
+.hcms-page-title {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin: 0;
+  color: var(--hcms-ink);
+}
+.hcms-page-subtitle {
+  font-size: 14px;
+  color: var(--hcms-ink-dim);
+  margin: 8px 0 0;
+  max-width: 56ch;
+  line-height: 1.5;
+}
+
+.hcms-page-actionbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.hcms-page-actionbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--hcms-ink-mute);
+}
+.hcms-page-actionbar-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hcms-page-empty {
+  padding: 36px 0;
+  margin: 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--hcms-ink-mute);
+}
+
+/* MODE PILL ------------------------------------------------------ */
+
+.hcms-mode-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 999px;
+  border: 1px solid var(--hcms-line-strong);
+  color: var(--hcms-ink-dim);
+  background: var(--hcms-bg);
+  font-variant-numeric: tabular-nums;
+}
+.hcms-mode-pill[data-state="ready"] { color: var(--hcms-ok-ink); background: var(--hcms-ok-bg); border-color: #bbf7d0; }
+.hcms-mode-pill[data-state="warn"] { color: var(--hcms-warn); background: var(--hcms-warn-bg); border-color: #fde68a; }
+.hcms-mode-pill[data-state="fail"] { color: var(--hcms-danger); background: var(--hcms-danger-bg); border-color: #fecaca; }
+
+/* STATUS DOT ----------------------------------------------------- */
+
+.hcms-status-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--hcms-faint);
+  flex-shrink: 0;
+}
+.hcms-status-dot[data-state="ready"] { background: var(--hcms-ok); }
+.hcms-status-dot[data-state="warn"] { background: #f59e0b; }
+.hcms-status-dot[data-state="fail"] { background: var(--hcms-danger); }
+
+/* BUTTON --------------------------------------------------------- */
+
+.hcms-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease, transform 120ms ease;
+}
+.hcms-btn:active { transform: translateY(0.5px); }
+.hcms-btn:disabled { cursor: not-allowed; opacity: 0.65; }
+.hcms-btn--primary {
+  background: var(--hcms-accent);
+  color: white;
+  border-color: var(--hcms-accent);
+  box-shadow: 0 1px 0 rgba(99, 102, 241, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+.hcms-btn--primary:hover:not(:disabled) { background: #4338ca; border-color: #4338ca; }
+.hcms-btn--primary:disabled { background: #c7d2fe; border-color: #c7d2fe; box-shadow: none; }
+.hcms-btn--ghost { background: transparent; color: var(--hcms-ink-dim); border-color: var(--hcms-line); }
+.hcms-btn--ghost:hover:not(:disabled) { background: var(--hcms-bg-soft); color: var(--hcms-ink); }
+
+/* DATA TABLE ----------------------------------------------------- */
+
+.hcms-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  color: var(--hcms-ink);
+  font-feature-settings: "tnum";
+}
+.hcms-data-table thead {
+  background: var(--hcms-bg-soft);
+}
+.hcms-data-table thead th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--hcms-ink-mute);
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--hcms-line);
+  white-space: nowrap;
+}
+.hcms-data-table tbody td {
+  padding: 5px 14px;
+  border-bottom: 1px solid color-mix(in srgb, var(--hcms-line) 60%, transparent);
+  color: var(--hcms-ink-dim);
+  vertical-align: middle;
+}
+.hcms-data-table tbody tr:last-child td { border-bottom: 0; }
+.hcms-data-table tbody tr:hover { background: var(--hcms-bg-soft); }
+.hcms-data-table tbody tr.is-selected { background: var(--hcms-accent-soft); }
+.hcms-data-table tbody tr.is-selected td { color: var(--hcms-ink); }
+
+.hcms-data-row {
+  display: grid;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 14px;
+  font-size: 13px;
+  color: var(--hcms-ink-dim);
+  border-bottom: 1px solid color-mix(in srgb, var(--hcms-line) 60%, transparent);
+  font-feature-settings: "tnum";
+}
+.hcms-data-row:hover { background: var(--hcms-bg-soft); }
+
+.hcms-data-cell--mono {
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  color: var(--hcms-ink-mute);
+  letter-spacing: -0.005em;
+}
+.hcms-data-cell--name {
+  font-weight: 500;
+  color: var(--hcms-ink);
+}
+.hcms-data-cell--num {
+  font-variant-numeric: tabular-nums;
+  color: var(--hcms-ink-mute);
+}
+
+/* Editorial overrides: when an admin-shell page contains the legacy
+   table/editor panels, strip their card chrome so the page IS the page. */
+.hcms-page .table-panel,
+.hcms-page .editor-panel {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+.hcms-page .editor-panel > .panel-heading {
+  border-top: 1px solid var(--hcms-line);
+}
+.hcms-page .hcms-data-table {
+  border-top: 1px solid var(--hcms-line);
+}

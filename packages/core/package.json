@@ -1,0 +1,32 @@
+{
+  "name": "@hono-cms/core",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "scripts": {
+    "build": "tsdown src/index.ts --dts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "tsc --noEmit",
+    "clean": "rm -rf dist coverage"
+  },
+  "dependencies": {
+    "@apollo/server": "^5.5.1",
+    "@better-auth/drizzle-adapter": "^1.6.11",
+    "@graphql-tools/schema": "^10.0.33",
+    "@hono-cms/schema": "workspace:*",
+    "@hono/zod-openapi": "^1.4.0",
+    "@types/qs": "^6.15.1",
+    "better-auth": "^1.6.11",
+    "drizzle-orm": "^0.45.2",
+    "graphql": "^16.14.0",
+    "hono": "^4.12.22",
+    "qs": "^6.15.2",
+    "zod": "^4.1.0"
+  }
+}

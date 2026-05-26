@@ -1,0 +1,16 @@
+{
+  "generatedAt": "2026-05-24T01:28:26.174Z",
+  "threshold": 0.1,
+  "entries": [
+    {
+      "screenId": "12-ct-add-field-modal",
+      "strapiPath": "/Users/imrlopez/dev/monorepo/cms/docs/screenshots/parity/strapi/12-ct-add-field-modal.png",
+      "honocmsPath": "/Users/imrlopez/dev/monorepo/cms/docs/screenshots/parity/honocms/12-ct-add-field-modal.png",
+      "similarityScore": 0.8849228395061728,
+      "pixelDelta": 149140,
+      "status": "fail",
+      "capturedAt": "2026-05-24T01:28:26.173Z",
+      "notes": "structurally aligned — both sides open a grid-picker dialog from 'Add another field' with the same category vocabulary (Text / Date / Relations / Number / Media / Other). Remaining pixel delta (~88%) is cosmetic: Strapi's modal uses Default/Custom tabs, while hono-cms renders all categories in a single scrollable column, and the cards differ in iconography and spacing."
+    }
+  ]
+}

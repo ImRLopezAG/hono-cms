@@ -1,0 +1,23 @@
+{
+  "name": "@hono-cms/adapter-d1",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "scripts": {
+    "build": "tsdown src/index.ts --dts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "tsc --noEmit",
+    "clean": "rm -rf dist coverage"
+  },
+  "dependencies": {
+    "@hono-cms/adapter-kit": "workspace:*",
+    "@hono-cms/core": "workspace:*",
+    "@hono-cms/schema": "workspace:*"
+  }
+}

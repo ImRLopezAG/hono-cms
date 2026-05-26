@@ -1,0 +1,28 @@
+{
+  "name": "@hono-cms/example-vercel-edge",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun src/local-server.ts",
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:live": "bun test src/local-server.test.ts",
+    "lint": "tsc --noEmit",
+    "clean": "rm -rf dist coverage"
+  },
+  "dependencies": {
+    "@hono-cms/adapter-memory": "workspace:*",
+    "@hono-cms/cache": "workspace:*",
+    "@hono-cms/core": "workspace:*",
+    "@hono-cms/jobs": "workspace:*",
+    "@hono-cms/platform": "workspace:*",
+    "@hono-cms/schema": "workspace:*",
+    "@hono-cms/storage-memory": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.0",
+    "vitest": "^4.0.0"
+  }
+}

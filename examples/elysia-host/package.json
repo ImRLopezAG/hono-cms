@@ -1,0 +1,27 @@
+{
+  "name": "@hono-cms/example-elysia-host",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun src/index.ts",
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "tsc --noEmit",
+    "clean": "rm -rf dist coverage"
+  },
+  "dependencies": {
+    "@hono-cms/adapter-memory": "workspace:*",
+    "@hono-cms/cache": "workspace:*",
+    "@hono-cms/core": "workspace:*",
+    "@hono-cms/jobs": "workspace:*",
+    "@hono-cms/schema": "workspace:*",
+    "@hono-cms/storage-memory": "workspace:*",
+    "elysia": "^1.4.28"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.0",
+    "vitest": "^4.0.0"
+  }
+}

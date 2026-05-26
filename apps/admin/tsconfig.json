@@ -1,0 +1,19 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "noEmit": true,
+    "exactOptionalPropertyTypes": false,
+    "types": ["vite/client", "react", "react-dom"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "components/*": ["./src/components/*"],
+      "ui/*": ["./src/components/ui/*"],
+      "lib/*": ["./src/lib/*"],
+      "hooks/*": ["./src/hooks/*"],
+      "utils/*": ["./src/lib/utils/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
+}

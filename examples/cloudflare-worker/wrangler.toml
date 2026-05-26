@@ -1,0 +1,4 @@
+name = "hono-cms-cf"
+main = "src/worker.ts"
+compatibility_date = "2026-05-01"
+compatibility_flags = ["nodejs_compat"]

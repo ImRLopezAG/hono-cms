@@ -1,0 +1,28 @@
+{
+  "name": "@hono-cms/cli",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "cms": "./dist/index.js",
+    "hono-cms": "./dist/index.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "bun run build && vitest run",
+    "lint": "tsc --noEmit",
+    "clean": "rm -rf dist coverage"
+  },
+  "dependencies": {
+    "@clack/prompts": "^1.4.0",
+    "@hono-cms/core": "workspace:*",
+    "@hono-cms/platform": "workspace:*",
+    "@hono-cms/schema": "workspace:*"
+  }
+}

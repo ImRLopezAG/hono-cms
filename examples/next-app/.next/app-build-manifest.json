@@ -1,0 +1,9 @@
+{
+  "pages": {
+    "/api/cms/[...route]/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/cms/[...route]/route.js"
+    ]
+  }
+}

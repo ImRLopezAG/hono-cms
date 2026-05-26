@@ -1,0 +1,39 @@
+{
+  "name": "hono-cms-monorepo",
+  "private": true,
+  "type": "module",
+  "packageManager": "bun@1.3.14",
+  "workspaces": [
+    "apps/*",
+    "examples/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build --ui=stream",
+    "dev": "turbo run dev",
+    "test": "turbo run test --ui=stream",
+    "test:scripts": "vitest run scripts/*.test.ts",
+    "test:parity": "vitest run tools/parity/__tests__/*.test.ts",
+    "typecheck": "turbo run typecheck --ui=stream",
+    "lint": "turbo run lint --ui=stream",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "scaffold:package": "bun run scripts/scaffold-package.ts"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "@types/node": "^24.12.4",
+    "@types/pixelmatch": "^5.2.6",
+    "@types/pngjs": "^6.0.5",
+    "pixelmatch": "^7.1.0",
+    "pngjs": "^7.0.0",
+    "tsdown": "^0.22.0",
+    "tsx": "^4.22.3",
+    "turbo": "^2.9.14",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.7"
+  },
+  "dependencies": {
+    "hono": "^4.12.22",
+    "zod": "^4.4.3"
+  }
+}

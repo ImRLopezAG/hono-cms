@@ -1,0 +1,137 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/inter";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-heading: var(--font-sans);
+    --font-sans: 'Inter Variable', sans-serif;
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+    /* shadcn variables — re-pointed at the Strapi token palette
+       declared in styles/tokens.css. Keeping the variable names
+       lets every shadcn primitive (Button, Dialog, DropdownMenu,
+       Popover, Tooltip, etc.) read the new palette automatically. */
+    --background: var(--surface-primary, #ffffff);
+    --foreground: var(--color-ink, #32324d);
+    --card: var(--surface-primary, #ffffff);
+    --card-foreground: var(--color-ink, #32324d);
+    --popover: var(--surface-primary, #ffffff);
+    --popover-foreground: var(--color-ink, #32324d);
+    --primary: var(--color-primary-600, #4945ff);
+    --primary-foreground: #ffffff;
+    --secondary: var(--surface-secondary, #f6f6f9);
+    --secondary-foreground: var(--color-ink, #32324d);
+    --muted: var(--surface-secondary, #f6f6f9);
+    --muted-foreground: var(--color-ink-mute, #666687);
+    --accent: var(--color-primary-100, #f0f0ff);
+    --accent-foreground: var(--color-primary-700, #271fe0);
+    --destructive: #d02b20;
+    --border: var(--color-border, #eaeaef);
+    --input: var(--color-border-strong, #dcdce4);
+    --ring: var(--color-primary-600, #4945ff);
+    --chart-1: #4945ff;
+    --chart-2: #7b79ff;
+    --chart-3: #d9d8ff;
+    --chart-4: #32324d;
+    --chart-5: #666687;
+    --radius: 4px;
+    --sidebar: var(--surface-primary, #ffffff);
+    --sidebar-foreground: var(--color-ink, #32324d);
+    --sidebar-primary: var(--color-primary-600, #4945ff);
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: var(--color-primary-100, #f0f0ff);
+    --sidebar-accent-foreground: var(--color-primary-700, #271fe0);
+    --sidebar-border: var(--color-border, #eaeaef);
+    --sidebar-ring: var(--color-primary-600, #4945ff);
+}
+
+.dark {
+    --background: #181826;
+    --foreground: #f5f5fb;
+    --card: #21213a;
+    --card-foreground: #f5f5fb;
+    --popover: #21213a;
+    --popover-foreground: #f5f5fb;
+    --primary: #7b79ff;
+    --primary-foreground: #ffffff;
+    --secondary: #2b2b46;
+    --secondary-foreground: #f5f5fb;
+    --muted: #2b2b46;
+    --muted-foreground: #9999b3;
+    --accent: rgba(123, 121, 255, 0.18);
+    --accent-foreground: #d9d8ff;
+    --destructive: #ee5e52;
+    --border: #2b2b46;
+    --input: #3a3a5c;
+    --ring: #7b79ff;
+    --chart-1: #7b79ff;
+    --chart-2: #4945ff;
+    --chart-3: #d9d8ff;
+    --chart-4: #c6c6d6;
+    --chart-5: #9999b3;
+    --sidebar: #21213a;
+    --sidebar-foreground: #f5f5fb;
+    --sidebar-primary: #7b79ff;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: rgba(123, 121, 255, 0.18);
+    --sidebar-accent-foreground: #d9d8ff;
+    --sidebar-border: #2b2b46;
+    --sidebar-ring: #7b79ff;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    }
+  body {
+    @apply bg-background text-foreground;
+    }
+  button:not(:disabled), [role="button"]:not(:disabled) {
+    cursor: pointer;
+    }
+  html {
+    @apply font-sans;
+    }
+}

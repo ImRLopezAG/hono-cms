@@ -1,0 +1,6 @@
+{
+  "_doc": "Per-screen annotations applied to manifest.json by diff.ts. Each key is a screen id; each value is a free-form note. Use this for documented divergences so the auto-regenerated manifest carries them across runs.",
+  "06-record-edit-info-panel": "intentional divergence: hono-cms admin always shows the right info panel — no separate toggle state. Identical to screen 05 by design.",
+  "08-media-upload-modal": "structurally aligned — both dialogs open from 'Add new assets', share the title, tab strip (From computer / From URL), drop-zone inside the active tab, and Cancel footer. Pixel similarity diverges (~86%) only on background framing: hono-cms renders a section sub-nav (rail 2 folder tree) and a taller header eyebrow/subtitle behind the modal scrim. The modal contents match.",
+  "12-ct-add-field-modal": "structurally aligned — both sides open a grid-picker dialog from 'Add another field' with the same category vocabulary (Text / Date / Relations / Number / Media / Other). Remaining pixel delta (~88%) is cosmetic: Strapi's modal uses Default/Custom tabs, while hono-cms renders all categories in a single scrollable column, and the cards differ in iconography and spacing."
+}

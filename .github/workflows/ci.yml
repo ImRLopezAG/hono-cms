@@ -1,0 +1,65 @@
+name: CI
+
+# Verify gate: typecheck + tests + lint on every PR and push to main.
+#
+# Playwright is intentionally NOT run here. End-to-end browser tests require a
+# Chromium install plus both the newsroom CMS and the admin SPA running, which
+# is expensive for every PR. Run Playwright locally for now, or add a separate
+# `e2e.yml` workflow when we want it gated in CI.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+  TURBO_UI: "false"
+
+jobs:
+  verify:
+    name: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Test
+        run: bun run test
+
+      - name: Lint
+        run: |
+          if bun pm pkg get scripts.lint > /dev/null 2>&1 && [ "$(bun pm pkg get scripts.lint)" != "undefined" ]; then
+            bun run lint
+          else
+            echo "no lint script"
+          fi
