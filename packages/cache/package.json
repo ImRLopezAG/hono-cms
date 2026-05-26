@@ -17,7 +17,14 @@
   },
   "dependencies": {
     "@hono-cms/core": "workspace:*",
+    "@hono-cms/schema": "workspace:*",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.0"
+  },
+  "peerDependencies": {
+    "hono": "^4.0.0"
+  },
+  "devDependencies": {
+    "hono": "^4.12.22"
   }
 }

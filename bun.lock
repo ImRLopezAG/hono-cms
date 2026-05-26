@@ -277,8 +277,15 @@
       "version": "0.1.0",
       "dependencies": {
         "@hono-cms/core": "workspace:*",
+        "@hono-cms/schema": "workspace:*",
         "@upstash/ratelimit": "^2.0.8",
         "@upstash/redis": "^1.38.0",
+      },
+      "devDependencies": {
+        "hono": "^4.12.22",
+      },
+      "peerDependencies": {
+        "hono": "^4.0.0",
       },
     },
     "packages/cli": {
@@ -331,6 +338,19 @@
       "dependencies": {
         "@hono-cms/core": "workspace:*",
         "@upstash/qstash": "^2.11.0",
+      },
+    },
+    "packages/openapi": {
+      "name": "@hono-cms/openapi",
+      "version": "0.1.0",
+      "dependencies": {
+        "@hono-cms/core": "workspace:*",
+        "@hono-cms/schema": "workspace:*",
+        "hono": "^4.12.22",
+      },
+      "devDependencies": {
+        "@hono-cms/adapter-memory": "workspace:*",
+        "vitest": "^4.1.7",
       },
     },
     "packages/platform": {
@@ -716,6 +736,8 @@
     "@hono-cms/example-vercel-edge": ["@hono-cms/example-vercel-edge@workspace:examples/vercel-edge"],
 
     "@hono-cms/jobs": ["@hono-cms/jobs@workspace:packages/jobs"],
+
+    "@hono-cms/openapi": ["@hono-cms/openapi@workspace:packages/openapi"],
 
     "@hono-cms/platform": ["@hono-cms/platform@workspace:packages/platform"],
 
