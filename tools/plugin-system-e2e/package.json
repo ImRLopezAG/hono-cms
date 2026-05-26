@@ -15,8 +15,10 @@
     "@hono-cms/cors": "workspace:*",
     "@hono-cms/jobs": "workspace:*",
     "@hono-cms/jobs-runtime": "workspace:*",
+    "@hono-cms/openapi": "workspace:*",
     "@hono-cms/rate-limit": "workspace:*",
     "@hono-cms/schema": "workspace:*",
+    "@hono-cms/storage-memory": "workspace:*",
     "@hono-cms/webhooks": "workspace:*",
     "hono": "^4.12.22",
     "vitest": "^4.1.7"

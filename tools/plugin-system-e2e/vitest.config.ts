@@ -16,7 +16,9 @@ export default defineConfig({
       "@hono-cms/auth-tokens": resolve(root, "packages/auth-tokens/src/index.ts"),
       "@hono-cms/rate-limit": resolve(root, "packages/rate-limit/src/index.ts"),
       "@hono-cms/audit": resolve(root, "packages/audit/src/index.ts"),
-      "@hono-cms/webhooks": resolve(root, "packages/webhooks/src/index.ts")
+      "@hono-cms/webhooks": resolve(root, "packages/webhooks/src/index.ts"),
+      "@hono-cms/openapi": resolve(root, "packages/openapi/src/index.ts"),
+      "@hono-cms/storage-memory": resolve(root, "packages/storage-memory/src/index.ts")
     }
   },
   test: {
