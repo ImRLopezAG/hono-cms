@@ -370,6 +370,29 @@
         "vitest": "^4.1.7",
       },
     },
+    "packages/i18n": {
+      "name": "@hono-cms/i18n",
+      "version": "0.1.0",
+      "dependencies": {
+        "@hono-cms/core": "workspace:*",
+        "hono": "^4.12.22",
+      },
+      "devDependencies": {
+        "@hono-cms/adapter-memory": "workspace:*",
+        "@hono-cms/jobs": "workspace:*",
+        "@hono-cms/jobs-runtime": "workspace:*",
+        "@hono-cms/schema": "workspace:*",
+        "vitest": "^4.1.7",
+      },
+      "peerDependencies": {
+        "@hono-cms/jobs-runtime": "workspace:*",
+        "drizzle-orm": "^0.45.0",
+      },
+      "optionalPeers": [
+        "@hono-cms/jobs-runtime",
+        "drizzle-orm",
+      ],
+    },
     "packages/jobs": {
       "name": "@hono-cms/jobs",
       "version": "0.1.0",
@@ -842,6 +865,8 @@
     "@hono-cms/example-tanstack-start": ["@hono-cms/example-tanstack-start@workspace:examples/tanstack-start"],
 
     "@hono-cms/example-vercel-edge": ["@hono-cms/example-vercel-edge@workspace:examples/vercel-edge"],
+
+    "@hono-cms/i18n": ["@hono-cms/i18n@workspace:packages/i18n"],
 
     "@hono-cms/jobs": ["@hono-cms/jobs@workspace:packages/jobs"],
 

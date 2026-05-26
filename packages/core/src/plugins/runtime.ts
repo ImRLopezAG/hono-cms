@@ -1,6 +1,7 @@
 import type { Hono, MiddlewareHandler } from "hono";
 import type { CMSCollections } from "@hono-cms/schema";
 import type { HonoCMSEnv } from "../types/instance";
+import { mergeSchemas } from "./schema-merge";
 import {
   CMSPluginError,
   type Authorize,
@@ -8,7 +9,8 @@ import {
   type CMSPluginCapabilities,
   type MountPhase,
   type Plugin,
-  type PluginContext
+  type PluginContext,
+  type PluginTableDef
 } from "./types";
 
 export type InstallResult<Collections extends CMSCollections> = {
@@ -142,6 +144,14 @@ export async function installPlugins<Collections extends CMSCollections>(
   ctx: PluginContext<Collections>
 ): Promise<InstallResult<Collections>> {
   const ordered = validateAndOrder(plugins);
+
+  // Merge plugin-declared internal tables into ctx.systemTables so plugins
+  // installed later can introspect what tables exist. ctx.systemTables is
+  // exposed as ReadonlyMap on the public type but the underlying Map is
+  // mutable here.
+  const merged = mergeSchemas(ordered);
+  const tablesMap = ctx.systemTables as Map<string, PluginTableDef>;
+  for (const [name, def] of merged.entries()) tablesMap.set(name, def);
 
   let authPlugin: AuthPlugin<Collections> | undefined;
   let authorize: Authorize = () => true;
