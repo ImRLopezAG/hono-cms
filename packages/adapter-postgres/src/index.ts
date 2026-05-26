@@ -55,3 +55,6 @@ export function createPostgresAdapter<Collections extends CMSCollections>(config
 }
 
 registerProvider<PostgresAdapterConfig, DatabaseAdapter>("db", "postgres", createPostgresAdapter);
+
+/** Preferred factory name per U24 — explicit alias of `createPostgresAdapter`. */
+export const postgresAdapter = createPostgresAdapter;

@@ -82,3 +82,6 @@ async function toBytes(body: Blob | ArrayBuffer | Uint8Array | string): Promise<
 }
 
 registerProvider<MemoryStorageConfig, StorageAdapter>("storage", "memory", createMemoryStorage);
+
+/** Preferred factory name per U24 — explicit alias of `createMemoryStorage`. */
+export const memoryStorage = createMemoryStorage;

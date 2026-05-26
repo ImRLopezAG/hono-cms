@@ -164,3 +164,6 @@ function isNotFound(error: unknown): boolean {
 }
 
 registerProvider<LocalStorageConfig, StorageAdapter>("storage", "local", createLocalStorage);
+
+/** Preferred factory name per U24 — explicit alias of `createLocalStorage`. */
+export const localStorage = createLocalStorage;

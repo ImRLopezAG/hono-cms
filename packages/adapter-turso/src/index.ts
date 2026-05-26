@@ -51,3 +51,6 @@ export function createTursoAdapter<Collections extends CMSCollections>(config: T
 }
 
 registerProvider<TursoAdapterConfig, DatabaseAdapter>("db", "turso", createTursoAdapter);
+
+/** Preferred factory name per U24 — explicit alias of `createTursoAdapter`. */
+export const tursoAdapter = createTursoAdapter;

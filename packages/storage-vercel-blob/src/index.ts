@@ -125,3 +125,6 @@ function isNotFound(error: unknown): boolean {
 }
 
 registerProvider<VercelBlobStorageConfig, StorageAdapter>("storage", "vercel-blob", createVercelBlobStorage);
+
+/** Preferred factory name per U24 — explicit alias of `createVercelBlobStorage`. */
+export const vercelBlobStorage = createVercelBlobStorage;

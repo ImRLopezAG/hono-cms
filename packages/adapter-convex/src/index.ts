@@ -49,3 +49,6 @@ export function createConvexAdapter<Collections extends CMSCollections>(config: 
 }
 
 registerProvider<ConvexAdapterConfig, DatabaseAdapter>("db", "convex", createConvexAdapter);
+
+/** Preferred factory name per U24 — explicit alias of `createConvexAdapter`. */
+export const convexAdapter = createConvexAdapter;

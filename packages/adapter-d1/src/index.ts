@@ -62,3 +62,6 @@ function toD1Executor(binding: D1DatabaseLike): SqlStatementExecutor {
     }
   };
 }
+
+/** Preferred factory name per U24 — explicit alias of `createD1Adapter`. */
+export const d1Adapter = createD1Adapter;

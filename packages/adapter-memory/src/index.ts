@@ -109,3 +109,10 @@ export function createMemoryDatabase<Collections extends CMSCollections>(config:
 }
 
 registerProvider<MemoryDatabaseConfig, DatabaseAdapter>("db", "memory", createMemoryDatabase);
+
+/**
+ * Preferred factory name per the plugin-system refactor (U24). Returns a
+ * `DatabaseAdapter` with no module-load side effects. Use this in
+ * `createCMS({ db: memoryDatabase({ collections, seed }) })`.
+ */
+export const memoryDatabase = createMemoryDatabase;

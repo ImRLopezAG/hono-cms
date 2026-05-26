@@ -106,3 +106,6 @@ function encodePath(key: string): string {
 }
 
 registerProvider<R2StorageConfig, StorageAdapter>("storage", "r2", createR2Storage);
+
+/** Preferred factory name per U24 — explicit alias of `createR2Storage`. */
+export const r2Storage = createR2Storage;

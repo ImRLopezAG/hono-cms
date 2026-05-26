@@ -147,3 +147,6 @@ function isNotFound(error: unknown): boolean {
 }
 
 registerProvider<S3StorageConfig, StorageAdapter>("storage", "s3", createS3Storage);
+
+/** Preferred factory name per U24 — explicit alias of `createS3Storage`. */
+export const s3Storage = createS3Storage;
