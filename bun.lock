@@ -312,6 +312,19 @@
         "zod": "^4.1.0",
       },
     },
+    "packages/cors": {
+      "name": "@hono-cms/cors",
+      "version": "0.1.0",
+      "dependencies": {
+        "@hono-cms/core": "workspace:*",
+        "hono": "^4.12.22",
+      },
+      "devDependencies": {
+        "@hono-cms/adapter-memory": "workspace:*",
+        "@hono-cms/schema": "workspace:*",
+        "vitest": "^4.1.7",
+      },
+    },
     "packages/jobs": {
       "name": "@hono-cms/jobs",
       "version": "0.1.0",
@@ -685,6 +698,8 @@
     "@hono-cms/cli": ["@hono-cms/cli@workspace:packages/cli"],
 
     "@hono-cms/core": ["@hono-cms/core@workspace:packages/core"],
+
+    "@hono-cms/cors": ["@hono-cms/cors@workspace:packages/cors"],
 
     "@hono-cms/example-bun-server": ["@hono-cms/example-bun-server@workspace:examples/bun-server"],
 
