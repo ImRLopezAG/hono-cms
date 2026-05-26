@@ -259,6 +259,30 @@
         "@hono-cms/schema": "workspace:*",
       },
     },
+    "packages/audit": {
+      "name": "@hono-cms/audit",
+      "version": "0.1.0",
+      "dependencies": {
+        "@hono-cms/core": "workspace:*",
+        "hono": "^4.12.22",
+      },
+      "devDependencies": {
+        "@hono-cms/adapter-memory": "workspace:*",
+        "@hono-cms/jobs": "workspace:*",
+        "@hono-cms/jobs-runtime": "workspace:*",
+        "@hono-cms/schema": "workspace:*",
+        "drizzle-orm": "^0.45.0",
+        "vitest": "^4.1.7",
+      },
+      "peerDependencies": {
+        "@hono-cms/jobs-runtime": "workspace:*",
+        "drizzle-orm": "^0.45.0",
+      },
+      "optionalPeers": [
+        "@hono-cms/jobs-runtime",
+        "drizzle-orm",
+      ],
+    },
     "packages/auth-tokens": {
       "name": "@hono-cms/auth-tokens",
       "version": "0.1.0",
@@ -299,6 +323,20 @@
         "@hono-cms/core": "workspace:*",
         "@hono-cms/platform": "workspace:*",
         "@hono-cms/schema": "workspace:*",
+      },
+    },
+    "packages/content-cache": {
+      "name": "@hono-cms/content-cache",
+      "version": "0.1.0",
+      "dependencies": {
+        "@hono-cms/core": "workspace:*",
+        "hono": "^4.12.22",
+      },
+      "devDependencies": {
+        "@hono-cms/adapter-memory": "workspace:*",
+        "@hono-cms/cache": "workspace:*",
+        "@hono-cms/schema": "workspace:*",
+        "vitest": "^4.1.7",
       },
     },
     "packages/core": {
@@ -385,6 +423,34 @@
         "@types/node": "^25.9.1",
       },
     },
+    "packages/preview": {
+      "name": "@hono-cms/preview",
+      "version": "0.1.0",
+      "dependencies": {
+        "@hono-cms/core": "workspace:*",
+        "hono": "^4.12.22",
+      },
+      "devDependencies": {
+        "@hono-cms/adapter-memory": "workspace:*",
+        "@hono-cms/cache": "workspace:*",
+        "@hono-cms/schema": "workspace:*",
+        "vitest": "^4.1.7",
+      },
+    },
+    "packages/rate-limit": {
+      "name": "@hono-cms/rate-limit",
+      "version": "0.1.0",
+      "dependencies": {
+        "@hono-cms/core": "workspace:*",
+        "hono": "^4.12.22",
+      },
+      "devDependencies": {
+        "@hono-cms/adapter-memory": "workspace:*",
+        "@hono-cms/cache": "workspace:*",
+        "@hono-cms/schema": "workspace:*",
+        "vitest": "^4.1.7",
+      },
+    },
     "packages/schema": {
       "name": "@hono-cms/schema",
       "version": "0.1.0",
@@ -425,6 +491,24 @@
       "dependencies": {
         "@hono-cms/core": "workspace:*",
         "@vercel/blob": "^2.1.0",
+      },
+    },
+    "packages/webhooks": {
+      "name": "@hono-cms/webhooks",
+      "version": "0.1.0",
+      "dependencies": {
+        "@hono-cms/core": "workspace:*",
+        "@hono-cms/schema": "workspace:*",
+        "hono": "^4.12.22",
+      },
+      "devDependencies": {
+        "@hono-cms/adapter-memory": "workspace:*",
+        "@hono-cms/jobs": "workspace:*",
+        "@hono-cms/jobs-runtime": "workspace:*",
+        "vitest": "^4.1.7",
+      },
+      "peerDependencies": {
+        "@hono-cms/jobs-runtime": "workspace:*",
       },
     },
   },
@@ -731,11 +815,15 @@
 
     "@hono-cms/admin-spa": ["@hono-cms/admin-spa@workspace:apps/admin"],
 
+    "@hono-cms/audit": ["@hono-cms/audit@workspace:packages/audit"],
+
     "@hono-cms/auth-tokens": ["@hono-cms/auth-tokens@workspace:packages/auth-tokens"],
 
     "@hono-cms/cache": ["@hono-cms/cache@workspace:packages/cache"],
 
     "@hono-cms/cli": ["@hono-cms/cli@workspace:packages/cli"],
+
+    "@hono-cms/content-cache": ["@hono-cms/content-cache@workspace:packages/content-cache"],
 
     "@hono-cms/core": ["@hono-cms/core@workspace:packages/core"],
 
@@ -763,6 +851,10 @@
 
     "@hono-cms/platform": ["@hono-cms/platform@workspace:packages/platform"],
 
+    "@hono-cms/preview": ["@hono-cms/preview@workspace:packages/preview"],
+
+    "@hono-cms/rate-limit": ["@hono-cms/rate-limit@workspace:packages/rate-limit"],
+
     "@hono-cms/schema": ["@hono-cms/schema@workspace:packages/schema"],
 
     "@hono-cms/storage-local": ["@hono-cms/storage-local@workspace:packages/storage-local"],
@@ -774,6 +866,8 @@
     "@hono-cms/storage-s3": ["@hono-cms/storage-s3@workspace:packages/storage-s3"],
 
     "@hono-cms/storage-vercel-blob": ["@hono-cms/storage-vercel-blob@workspace:packages/storage-vercel-blob"],
+
+    "@hono-cms/webhooks": ["@hono-cms/webhooks@workspace:packages/webhooks"],
 
     "@hono/node-server": ["@hono/node-server@1.19.14", "", { "peerDependencies": { "hono": "^4" } }, "sha512-GwtvgtXxnWsucXvbQXkRgqksiH2Qed37H9xHZocE5sA3N8O8O8/8FA3uclQXxXVzc9XBZuEOMK7+r02FmSpHtw=="],
 
