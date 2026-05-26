@@ -1,8 +1,9 @@
 ---
 title: "refactor: Better Auth–style plugin system + kernel cut"
 type: refactor
-status: active
+status: completed
 created: 2026-05-25
+completed: 2026-05-26
 depth: deep
 origin: docs/handoff/2026-05-25-plugin-refactor-handoff.md
 ---
