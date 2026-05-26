@@ -1,0 +1,27 @@
+{
+  "name": "@hono-cms/openapi",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsdown --config tsdown.config.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "lint": "tsc --noEmit",
+    "clean": "rm -rf dist coverage"
+  },
+  "dependencies": {
+    "@hono-cms/core": "workspace:*",
+    "@hono-cms/schema": "workspace:*",
+    "hono": "^4.12.22"
+  },
+  "devDependencies": {
+    "@hono-cms/adapter-memory": "workspace:*",
+    "vitest": "^4.1.7"
+  }
+}
