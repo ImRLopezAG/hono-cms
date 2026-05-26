@@ -1,0 +1,42 @@
+{
+  "name": "@hono-cms/audit",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsdown --config tsdown.config.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "lint": "tsc --noEmit",
+    "clean": "rm -rf dist coverage"
+  },
+  "dependencies": {
+    "@hono-cms/core": "workspace:*",
+    "hono": "^4.12.22"
+  },
+  "peerDependencies": {
+    "@hono-cms/jobs-runtime": "workspace:*",
+    "drizzle-orm": "^0.45.0"
+  },
+  "peerDependenciesMeta": {
+    "@hono-cms/jobs-runtime": {
+      "optional": true
+    },
+    "drizzle-orm": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@hono-cms/adapter-memory": "workspace:*",
+    "@hono-cms/jobs": "workspace:*",
+    "@hono-cms/jobs-runtime": "workspace:*",
+    "@hono-cms/schema": "workspace:*",
+    "drizzle-orm": "^0.45.0",
+    "vitest": "^4.1.7"
+  }
+}
