@@ -31,6 +31,7 @@
       "@hono-cms/storage-s3": ["./packages/storage-s3/src/index.ts"],
       "@hono-cms/storage-vercel-blob": ["./packages/storage-vercel-blob/src/index.ts"],
       "@hono-cms/cache": ["./packages/cache/src/index.ts"],
+      "@hono-cms/auth-tokens": ["./packages/auth-tokens/src/index.ts"],
       "@hono-cms/jobs": ["./packages/jobs/src/index.ts"],
       "@hono-cms/platform": ["./packages/platform/src/index.ts"],
       "@hono-cms/platform/cloudflare": ["./packages/platform/src/cloudflare.ts"],

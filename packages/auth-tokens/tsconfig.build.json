@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "paths": {
+      "@hono-cms/core": ["../core/dist/index.d.mts"],
+      "@hono-cms/schema": ["../schema/dist/index.d.ts"]
+    }
+  },
+  "include": ["src/index.ts"]
+}

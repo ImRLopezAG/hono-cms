@@ -259,6 +259,19 @@
         "@hono-cms/schema": "workspace:*",
       },
     },
+    "packages/auth-tokens": {
+      "name": "@hono-cms/auth-tokens",
+      "version": "0.1.0",
+      "dependencies": {
+        "@hono-cms/core": "workspace:*",
+        "@hono-cms/schema": "workspace:*",
+        "hono": "^4.12.22",
+      },
+      "devDependencies": {
+        "@hono-cms/adapter-memory": "workspace:*",
+        "vitest": "^4.1.7",
+      },
+    },
     "packages/cache": {
       "name": "@hono-cms/cache",
       "version": "0.1.0",
@@ -664,6 +677,8 @@
     "@hono-cms/adapter-turso": ["@hono-cms/adapter-turso@workspace:packages/adapter-turso"],
 
     "@hono-cms/admin-spa": ["@hono-cms/admin-spa@workspace:apps/admin"],
+
+    "@hono-cms/auth-tokens": ["@hono-cms/auth-tokens@workspace:packages/auth-tokens"],
 
     "@hono-cms/cache": ["@hono-cms/cache@workspace:packages/cache"],
 
