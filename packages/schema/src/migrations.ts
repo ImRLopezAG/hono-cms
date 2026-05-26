@@ -31,6 +31,12 @@ export type SchemaPlan = {
 export type SystemTableSnapshot = {
   name: string;
   fields: Record<string, unknown>;
+  /**
+   * When true, the table is present in the runtime schema map (for type/API surface)
+   * but skipped by the migration planner. Useful for plugins whose backing store is
+   * not the configured database.
+   */
+  disableMigration?: boolean;
 };
 
 export type CreateSchemaSnapshotOptions = {
@@ -95,15 +101,18 @@ export function planSchemaMigration(previous: SchemaSnapshot | null, collections
     }
   }
 
-  for (const table of Object.keys(nextSystemTables)) {
-    if (!beforeSystemTables[table]) {
+  for (const [table, snapshot] of Object.entries(nextSystemTables)) {
+    if (snapshot.disableMigration) continue;
+    const before = beforeSystemTables[table];
+    if (!before) {
       changes.push({ type: "create_system_table", table });
-    } else if (stableStringify(beforeSystemTables[table]) !== stableStringify(nextSystemTables[table])) {
+    } else if (stableStringify(before) !== stableStringify(snapshot)) {
       changes.push({ type: "alter_system_table", table });
     }
   }
 
-  for (const table of Object.keys(beforeSystemTables)) {
+  for (const [table, snapshot] of Object.entries(beforeSystemTables)) {
+    if (snapshot.disableMigration) continue;
     if (!nextSystemTables[table]) changes.push({ type: "drop_system_table", table });
   }
 
@@ -192,13 +201,39 @@ function normalizeCollectionOptions(options: CollectionOptions = {}): Collection
 function normalizeSystemTables(tables: Record<string, SystemTableSnapshot> = {}): Record<string, SystemTableSnapshot> {
   return Object.fromEntries(Object.entries(tables)
     .sort(([left], [right]) => left.localeCompare(right))
-    .map(([key, table]) => [
-      key,
-      {
+    .map(([key, table]) => {
+      const normalized: SystemTableSnapshot = {
         name: table.name,
         fields: Object.fromEntries(Object.entries(table.fields).sort(([left], [right]) => left.localeCompare(right)))
-      }
-    ]));
+      };
+      if (table.disableMigration) normalized.disableMigration = true;
+      return [key, normalized];
+    }));
+}
+
+/**
+ * Throws when any user collection's name (or its trivial pluralization) collides
+ * with the name of a plugin-owned system table. Used by the kernel's plugin
+ * schema-merge pass to fail fast on plugin/collection name clashes.
+ */
+export function assertNoReservedSystemTableConflicts(
+  collections: CMSCollections,
+  systemTables: Record<string, SystemTableSnapshot> | undefined
+): void {
+  if (!systemTables) return;
+  const reserved = new Map<string, string>();
+  for (const table of Object.values(systemTables)) {
+    reserved.set(table.name, table.name);
+    reserved.set(`${table.name}s`, table.name);
+  }
+  for (const collection of Object.values(collections)) {
+    const reservedName = reserved.get(collection.name);
+    if (reservedName) {
+      throw new Error(
+        `Schema conflict: content type "${collection.name}" conflicts with reserved plugin system table "${reservedName}". Rename the content type.`
+      );
+    }
+  }
 }
 
 export function stableStringify(value: unknown): string {

@@ -1158,5 +1158,5 @@ export type {
 } from "./adapter";
 export { AdapterCapabilityError, CMSConfigError } from "./errors";
 export type { CreateSchemaSnapshotOptions, SchemaChange, SchemaPlan, SchemaSnapshot, SystemTableSnapshot } from "./migrations";
-export { createSchemaSnapshot, formatSchemaPlan, planSchemaMigration } from "./migrations";
+export { assertNoReservedSystemTableConflicts, createSchemaSnapshot, formatSchemaPlan, planSchemaMigration } from "./migrations";
 export type { SubsystemHealth } from "./health";

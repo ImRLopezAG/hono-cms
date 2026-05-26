@@ -3,6 +3,7 @@ import type { AdapterCapabilities, CMSCollections } from "@hono-cms/schema";
 import type { CMSConfig } from "./types/config";
 import type { HonoCMSEnv } from "./types/instance";
 import type { DatabaseAdapter } from "./types/providers";
+import { CMSPluginError as ManifestCMSPluginError } from "./plugins/types";
 
 export type CMSPluginCapabilities<Collections extends CMSCollections = CMSCollections> = {
   reads?: readonly (keyof Collections & string)[];
@@ -16,18 +17,22 @@ export type CMSPluginContext<Collections extends CMSCollections = CMSCollections
   db: DatabaseAdapter<Collections>;
 };
 
+/**
+ * @deprecated Legacy plugin function shape. Use the manifest-style
+ * `Plugin` from `@hono-cms/core/plugins/types` instead. Will be removed
+ * after the plugin-system refactor lands.
+ */
 export type CMSPlugin<Collections extends CMSCollections = CMSCollections> = {
   (app: Hono<HonoCMSEnv>, context: CMSPluginContext<Collections>): Hono<HonoCMSEnv> | void;
   name?: string;
   capabilities?: CMSPluginCapabilities<Collections>;
 };
 
-export class CMSPluginError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "CMSPluginError";
-  }
-}
+/**
+ * Re-export of the manifest CMSPluginError so legacy callers keep compiling.
+ */
+export const CMSPluginError = ManifestCMSPluginError;
+export type CMSPluginErrorType = InstanceType<typeof ManifestCMSPluginError>;
 
 export function definePlugin<Collections extends CMSCollections>(
   plugin: CMSPlugin<Collections>,

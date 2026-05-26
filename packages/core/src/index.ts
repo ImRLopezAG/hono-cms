@@ -15,7 +15,41 @@ export type { CMSGraphQLContext } from "./graphql/context";
 export { createOpenAPISpec } from "./openapi";
 export { confirmMediaUpload, createMediaPresign, MediaPresignStore, MemoryMediaFolderStore, MemoryMediaStore, uploadMediaObject } from "./media";
 export { MemoryOrganizationStore } from "./organization";
-export { applyPlugins, CMSPluginError, definePlugin, validatePluginCapabilities } from "./plugins";
+export { applyPlugins, definePlugin } from "./plugins";
+export { CMSPluginError } from "./plugins/types";
+export { createPlugin, createAuthPlugin } from "./plugins/factories";
+export { createServiceRegistry } from "./plugins/service-registry";
+export { createEventBus } from "./plugins/event-bus";
+export { createHookRegistry } from "./plugins/hook-registry";
+export { createPluginContext } from "./plugins/context";
+export { installPlugins, validateAndOrder, validatePluginCapabilities } from "./plugins/runtime";
+export type { InstallResult } from "./plugins/runtime";
+export { mergeSchemas, toSystemTablesSnapshot, assertNoCollectionConflicts } from "./plugins/schema-merge";
+export type {
+  AuthPlugin,
+  Authorize,
+  AuthorizeAction,
+  CMSEvents,
+  FieldDef,
+  FieldType,
+  HookDeclaration,
+  HookMatcher,
+  Identity,
+  LifecycleHookContext,
+  LifecycleHookEvent,
+  LifecycleHookHandler,
+  MiddlewareDeclaration,
+  MountPhase,
+  Plugin,
+  PluginContext,
+  PluginEvents,
+  PluginServices,
+  PluginTableDef,
+  RateLimitDeclaration,
+  SchemaExtension,
+  HookRegistry,
+  Awaitable
+} from "./plugins/types";
 export { runHealthChecks, sanitizeError, withTimeout } from "./health";
 export { InvalidCursorError, applyListQuery, decodeCursor, encodeCursor, parseQueryParams, publicListResult } from "./content/query";
 export { MAX_POPULATE_DEPTH, MAX_POPULATE_NODES, parsePopulateParams, populateRecords } from "./content/populate";
