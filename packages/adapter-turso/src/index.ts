@@ -1,5 +1,4 @@
 import { PortableDocumentAdapter, createSqlDocumentExecutor, type DocumentExecutor, type SqlStatementExecutor } from "@hono-cms/adapter-kit";
-import { registerProvider, type DatabaseAdapter } from "@hono-cms/core";
 import type { CMSCollections } from "@hono-cms/schema";
 
 export type TursoAdapterConfig<Collections extends CMSCollections = CMSCollections> = {
@@ -50,7 +49,6 @@ export function createTursoAdapter<Collections extends CMSCollections>(config: T
   return new TursoAdapter(config);
 }
 
-registerProvider<TursoAdapterConfig, DatabaseAdapter>("db", "turso", createTursoAdapter);
 
 /** Preferred factory name per U24 — explicit alias of `createTursoAdapter`. */
 export const tursoAdapter = createTursoAdapter;

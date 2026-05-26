@@ -1,5 +1,4 @@
 import { assertCapability, PortableDocumentAdapter, type DocumentExecutor } from "@hono-cms/adapter-kit";
-import { registerProvider, type DatabaseAdapter } from "@hono-cms/core";
 import type { CMSCollections, ContentRecord, QueryParams } from "@hono-cms/schema";
 
 export type ConvexClientLike = {
@@ -48,7 +47,6 @@ export function createConvexAdapter<Collections extends CMSCollections>(config: 
   return new ConvexAdapter(config);
 }
 
-registerProvider<ConvexAdapterConfig, DatabaseAdapter>("db", "convex", createConvexAdapter);
 
 /** Preferred factory name per U24 — explicit alias of `createConvexAdapter`. */
 export const convexAdapter = createConvexAdapter;

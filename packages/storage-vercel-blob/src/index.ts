@@ -1,5 +1,5 @@
+import { assertStorageKey } from "@hono-cms/core";
 import { del, head, put } from "@vercel/blob";
-import { assertStorageKey, registerProvider, type StorageAdapter, type StoragePutOptions, type StorageSignedUpload, type StorageSignedUploadOptions, type StoredObject } from "@hono-cms/core";
 
 export type VercelBlobClient = {
   put: typeof put;
@@ -124,7 +124,6 @@ function isNotFound(error: unknown): boolean {
   return maybe.status === 404 || maybe.statusCode === 404 || maybe.name === "BlobNotFoundError";
 }
 
-registerProvider<VercelBlobStorageConfig, StorageAdapter>("storage", "vercel-blob", createVercelBlobStorage);
 
 /** Preferred factory name per U24 — explicit alias of `createVercelBlobStorage`. */
 export const vercelBlobStorage = createVercelBlobStorage;

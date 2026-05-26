@@ -88,14 +88,3 @@ export type {
   UpstashCacheConfig,
   UpstashRedisLike
 } from "./adapters/types";
-
-/**
- * Transitional `registerProvider` shims for the legacy `createCMS({ cache: { provider: "memory" } })`
- * shape. The plugin manifest path is the preferred API and tests/examples should
- * migrate to it; the registry side-effect is removed entirely when the legacy
- * createCMS code path is deleted in the kernel cleanup pass (U23).
- */
-import { registerProvider } from "@hono-cms/core";
-registerProvider("cache", "memory", createMemoryCache);
-registerProvider("cache", "kv", createKVCache);
-registerProvider("cache", "upstash", createUpstashCache);

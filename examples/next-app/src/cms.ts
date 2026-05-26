@@ -1,12 +1,12 @@
 /**
  * Next.js App Router example, migrated to the plugin manifest shape (U25).
  *
- * Uses `createPluginCMS` from `@hono-cms/core` — every cross-cutting
+ * Uses `createCMS` from `@hono-cms/core` — every cross-cutting
  * concern lands as a plugin entry, instead of legacy `cache:`/`auth:`/`cors:`
  * config slots. The factory is async because plugin registration is async.
  */
 import { memoryDatabase } from "@hono-cms/adapter-memory";
-import { createPluginCMS, type PluginCMSInstance } from "@hono-cms/core";
+import { createCMS, type CMSInstance } from "@hono-cms/core";
 import { memoryCache } from "@hono-cms/cache";
 import { memoryStorage } from "@hono-cms/storage-memory";
 import { memoryJobs } from "@hono-cms/jobs";
@@ -38,8 +38,8 @@ export type NextCMSOptions = {
 
 export async function createNextExampleCMS(
   options: NextCMSOptions = {}
-): Promise<PluginCMSInstance<typeof nextExampleSchema>> {
-  return createPluginCMS({
+): Promise<CMSInstance<typeof nextExampleSchema>> {
+  return createCMS({
     collections: nextExampleSchema,
     db: memoryDatabase({ provider: "memory", collections: nextExampleSchema }),
     storage: memoryStorage({ provider: "memory" }),

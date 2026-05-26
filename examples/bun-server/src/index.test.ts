@@ -68,7 +68,7 @@ describe("Hono CMS on Bun.serve (plugin shape)", () => {
       body: JSON.stringify({
         title: "Plugin-shape post",
         slug: "plugin-shape-post",
-        body: "Created via createPluginCMS over Bun.serve."
+        body: "Created via createCMS over Bun.serve."
       })
     });
     expect(created.status).toBe(201);

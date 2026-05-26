@@ -2,7 +2,7 @@
  * Elysia-host example, migrated to the plugin manifest shape (U25).
  */
 import { memoryDatabase } from "@hono-cms/adapter-memory";
-import { createPluginCMS, type PluginCMSInstance } from "@hono-cms/core";
+import { createCMS, type CMSInstance } from "@hono-cms/core";
 import { memoryStorage } from "@hono-cms/storage-memory";
 import { memoryCache } from "@hono-cms/cache";
 import { memoryJobs } from "@hono-cms/jobs";
@@ -31,8 +31,8 @@ export type ElysiaCMSOptions = {
   onBootstrapKey?: (key: string) => void;
 };
 
-export async function createElysiaExampleCMS(opts: ElysiaCMSOptions = {}): Promise<PluginCMSInstance<typeof elysiaExampleSchema>> {
-  return createPluginCMS({
+export async function createElysiaExampleCMS(opts: ElysiaCMSOptions = {}): Promise<CMSInstance<typeof elysiaExampleSchema>> {
+  return createCMS({
     collections: elysiaExampleSchema,
     db: memoryDatabase({ provider: "memory", collections: elysiaExampleSchema }),
     storage: memoryStorage({ provider: "memory" }),

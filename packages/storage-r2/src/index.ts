@@ -1,4 +1,4 @@
-import { assertStorageKey, registerProvider, type StorageAdapter, type StoragePutOptions, type StorageSignedUpload, type StorageSignedUploadOptions, type StoredObject } from "@hono-cms/core";
+import { assertStorageKey } from "@hono-cms/core";
 
 export type R2BucketBinding = {
   put(key: string, value: ReadableStream | ArrayBuffer | ArrayBufferView | string | null, options?: { httpMetadata?: { contentType?: string }; customMetadata?: Record<string, string> }): Promise<unknown>;
@@ -105,7 +105,6 @@ function encodePath(key: string): string {
   return key.split("/").map(encodeURIComponent).join("/");
 }
 
-registerProvider<R2StorageConfig, StorageAdapter>("storage", "r2", createR2Storage);
 
 /** Preferred factory name per U24 — explicit alias of `createR2Storage`. */
 export const r2Storage = createR2Storage;

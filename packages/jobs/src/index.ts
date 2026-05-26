@@ -45,7 +45,6 @@
  *    `cronOnly: true` is set) and `enqueue()` throws `JobsConfigError`
  *    so on-demand jobs cannot be dropped silently.
  */
-import { registerProvider, type JobContext, type JobHandler, type JobsAdapter } from "@hono-cms/core";
 import { Client, Receiver } from "@upstash/qstash";
 
 export class JobsConfigError extends Error {
@@ -572,8 +571,3 @@ export function vercelJobs(config: Omit<VercelJobsConfig, "provider"> & { provid
   return createVercelJobs({ ...config, provider: "vercel" });
 }
 
-registerProvider<MemoryJobsConfig, JobsAdapter>("jobs", "memory", createMemoryJobs);
-registerProvider<NoneJobsConfig, JobsAdapter>("jobs", "none", createNoneJobs);
-registerProvider<QStashJobsConfig, JobsAdapter>("jobs", "qstash", createQStashJobs);
-registerProvider<CloudflareJobsConfig, JobsAdapter>("jobs", "cloudflare", createCloudflareJobs);
-registerProvider<VercelJobsConfig, JobsAdapter>("jobs", "vercel", createVercelJobs);

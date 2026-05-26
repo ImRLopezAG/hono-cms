@@ -1,4 +1,4 @@
-import { applyListQuery, registerProvider, type ContentRecord, type DatabaseAdapter, type ListQuery, type ListResult } from "@hono-cms/core";
+import { applyListQuery, type ContentRecord, type DatabaseAdapter, type ListQuery, type ListResult } from "@hono-cms/core";
 import type { CMSCollections } from "@hono-cms/schema";
 
 export type MemoryDatabaseConfig<Collections extends CMSCollections = CMSCollections> = {
@@ -108,7 +108,6 @@ export function createMemoryDatabase<Collections extends CMSCollections>(config:
   return new MemoryDatabaseAdapter(config);
 }
 
-registerProvider<MemoryDatabaseConfig, DatabaseAdapter>("db", "memory", createMemoryDatabase);
 
 /**
  * Preferred factory name per the plugin-system refactor (U24). Returns a

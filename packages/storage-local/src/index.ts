@@ -1,6 +1,6 @@
+import { assertStorageKey } from "@hono-cms/core";
 import { mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { dirname, relative, resolve, sep } from "node:path";
-import { assertStorageKey, registerProvider, type StorageAdapter, type StoragePutOptions, type StorageSignedUpload, type StorageSignedUploadOptions, type StoredObject } from "@hono-cms/core";
 
 export type LocalStorageConfig = {
   provider: "local";
@@ -163,7 +163,6 @@ function isNotFound(error: unknown): boolean {
   return typeof error === "object" && error !== null && "code" in error && (error as { code?: string }).code === "ENOENT";
 }
 
-registerProvider<LocalStorageConfig, StorageAdapter>("storage", "local", createLocalStorage);
 
 /** Preferred factory name per U24 — explicit alias of `createLocalStorage`. */
 export const localStorage = createLocalStorage;

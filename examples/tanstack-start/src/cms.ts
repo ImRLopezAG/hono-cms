@@ -1,14 +1,14 @@
 /**
  * TanStack Start example, migrated to the plugin manifest shape (U25).
  *
- * The CMS is built with `createPluginCMS` from `@hono-cms/core`. Plugin
+ * The CMS is built with `createCMS` from `@hono-cms/core`. Plugin
  * factories run inside the request lifecycle, so the TanStack Start
  * file route at `/api/cms/$` lazily instantiates the CMS on first
  * request — keeping module load free of timers and I/O (matches the
  * Cloudflare Worker example shape).
  */
 import { memoryDatabase } from "@hono-cms/adapter-memory";
-import { createPluginCMS, type PluginCMSInstance } from "@hono-cms/core";
+import { createCMS, type CMSInstance } from "@hono-cms/core";
 import { memoryCache } from "@hono-cms/cache";
 import { memoryStorage } from "@hono-cms/storage-memory";
 import { memoryJobs } from "@hono-cms/jobs";
@@ -43,8 +43,8 @@ export type TanstackExampleOptions = {
 
 export async function createTanstackExampleCMS(
   options: TanstackExampleOptions = {}
-): Promise<PluginCMSInstance<typeof tanstackStartSchema>> {
-  return createPluginCMS({
+): Promise<CMSInstance<typeof tanstackStartSchema>> {
+  return createCMS({
     collections: tanstackStartSchema,
     db: memoryDatabase({ provider: "memory", collections: tanstackStartSchema }),
     storage: memoryStorage({ provider: "memory" }),
@@ -79,10 +79,10 @@ export async function createTanstackExampleCMS(
  * first incoming request. Subsequent requests reuse the cached instance.
  */
 export function createTanstackExampleHandler(options: TanstackExampleOptions = {}) {
-  let cached: PluginCMSInstance<typeof tanstackStartSchema> | null = null;
-  let initPromise: Promise<PluginCMSInstance<typeof tanstackStartSchema>> | null = null;
+  let cached: CMSInstance<typeof tanstackStartSchema> | null = null;
+  let initPromise: Promise<CMSInstance<typeof tanstackStartSchema>> | null = null;
 
-  async function get(): Promise<PluginCMSInstance<typeof tanstackStartSchema>> {
+  async function get(): Promise<CMSInstance<typeof tanstackStartSchema>> {
     if (cached) return cached;
     if (!initPromise) initPromise = createTanstackExampleCMS(options);
     cached = await initPromise;

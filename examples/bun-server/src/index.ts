@@ -1,7 +1,7 @@
 import { createBunExampleCMS } from "./cms";
 
 /**
- * `createPluginCMS` is async because plugin install ordering, schema
+ * `createCMS` is async because plugin install ordering, schema
  * merging, and the `app(app, ctx)` lifecycle hook all happen inside
  * `installPlugins`. We resolve the CMS up front, then hand its `fetch`
  * to `Bun.serve` — the runtime contract is the same Web standard

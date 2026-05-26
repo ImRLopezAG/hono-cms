@@ -8,7 +8,7 @@
  * `cloudflare-worker` example: Workers and Vercel Edge share the same
  * "no setInterval/no fs at module scope" constraint.
  */
-import { createPluginCMS, type PluginCMSInstance } from "@hono-cms/core";
+import { createCMS, type CMSInstance } from "@hono-cms/core";
 import { memoryDatabase } from "@hono-cms/adapter-memory";
 import { memoryStorage } from "@hono-cms/storage-memory";
 import { memoryCache } from "@hono-cms/cache";
@@ -28,8 +28,8 @@ export type VercelExampleOptions = {
   onBootstrapKey?: (key: string) => void;
 };
 
-export async function createVercelExampleCMS(options: VercelExampleOptions = {}): Promise<PluginCMSInstance<typeof collections>> {
-  return createPluginCMS({
+export async function createVercelExampleCMS(options: VercelExampleOptions = {}): Promise<CMSInstance<typeof collections>> {
+  return createCMS({
     collections,
     db: memoryDatabase({ provider: "memory", collections }),
     storage: memoryStorage({ provider: "memory" }),
@@ -64,10 +64,10 @@ export type VercelEdgeHandler = (request: Request) => Promise<Response>;
  * global scope stays free of timers and I/O.
  */
 export function createVercelExampleHandler(options: VercelExampleOptions = {}): VercelEdgeHandler {
-  let cached: PluginCMSInstance<typeof collections> | null = null;
-  let initPromise: Promise<PluginCMSInstance<typeof collections>> | null = null;
+  let cached: CMSInstance<typeof collections> | null = null;
+  let initPromise: Promise<CMSInstance<typeof collections>> | null = null;
 
-  async function get(): Promise<PluginCMSInstance<typeof collections>> {
+  async function get(): Promise<CMSInstance<typeof collections>> {
     if (cached) return cached;
     if (!initPromise) initPromise = createVercelExampleCMS(options);
     cached = await initPromise;

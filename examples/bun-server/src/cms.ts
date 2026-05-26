@@ -1,12 +1,12 @@
 /**
  * Bun-native example, migrated to the plugin manifest shape (U25).
  *
- * Uses `createPluginCMS` from `@hono-cms/core` — the plugin runtime
+ * Uses `createCMS` from `@hono-cms/core` — the plugin runtime
  * kernel. No more `cache:`/`jobs:`/`auth:`/`cors:` config slots; every
  * cross-cutting concern lands as a plugin entry.
  */
 import { memoryDatabase } from "@hono-cms/adapter-memory";
-import { createPluginCMS, type PluginCMSInstance } from "@hono-cms/core";
+import { createCMS, type CMSInstance } from "@hono-cms/core";
 import { memoryCache } from "@hono-cms/cache";
 import { memoryStorage } from "@hono-cms/storage-memory";
 import { memoryJobs } from "@hono-cms/jobs";
@@ -35,8 +35,8 @@ export type BunCMSOptions = {
   onBootstrapKey?: (key: string) => void;
 };
 
-export async function createBunExampleCMS(opts: BunCMSOptions = {}): Promise<PluginCMSInstance<typeof bunExampleSchema>> {
-  return createPluginCMS({
+export async function createBunExampleCMS(opts: BunCMSOptions = {}): Promise<CMSInstance<typeof bunExampleSchema>> {
+  return createCMS({
     collections: bunExampleSchema,
     db: memoryDatabase({ provider: "memory", collections: bunExampleSchema }),
     storage: memoryStorage({ provider: "memory" }),

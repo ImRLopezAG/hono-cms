@@ -5,7 +5,7 @@
  * jobs-runtime, auth-tokens, rate-limit, content-cache, audit, webhooks,
  * drafts, media — as the canonical starter template.
  */
-import { createPluginCMS, type PluginCMSInstance } from "@hono-cms/core";
+import { createCMS, type CMSInstance } from "@hono-cms/core";
 import { memoryDatabase } from "@hono-cms/adapter-memory";
 import { memoryStorage } from "@hono-cms/storage-memory";
 import { memoryCache } from "@hono-cms/cache";
@@ -27,8 +27,8 @@ export type NewsroomCMSOptions = {
   onBootstrapKey?: (key: string) => void;
 };
 
-export async function createNewsroomCMS(options: NewsroomCMSOptions = {}): Promise<PluginCMSInstance<typeof newsroomSchema>> {
-  return createPluginCMS({
+export async function createNewsroomCMS(options: NewsroomCMSOptions = {}): Promise<CMSInstance<typeof newsroomSchema>> {
+  return createCMS({
     collections: newsroomSchema,
     db: memoryDatabase({ provider: "memory", collections: newsroomSchema }),
     storage: memoryStorage({ provider: "memory" }),

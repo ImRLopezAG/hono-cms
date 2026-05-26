@@ -5,7 +5,7 @@
  * runtime is structured so factory invocation runs inside the request
  * lifecycle. The CMS is lazy-instantiated on first request.
  */
-import { createPluginCMS, type PluginCMSInstance } from "@hono-cms/core";
+import { createCMS, type CMSInstance } from "@hono-cms/core";
 import { memoryDatabase } from "@hono-cms/adapter-memory";
 import { memoryStorage } from "@hono-cms/storage-memory";
 import { memoryCache } from "@hono-cms/cache";
@@ -23,8 +23,8 @@ export type CloudflareExampleOptions = {
   onBootstrapKey?: (key: string) => void;
 };
 
-export async function createCloudflareExampleCMS(options: CloudflareExampleOptions = {}): Promise<PluginCMSInstance<typeof collections>> {
-  return createPluginCMS({
+export async function createCloudflareExampleCMS(options: CloudflareExampleOptions = {}): Promise<CMSInstance<typeof collections>> {
+  return createCMS({
     collections,
     db: memoryDatabase({ provider: "memory", collections }),
     storage: memoryStorage({ provider: "memory" }),
@@ -57,10 +57,10 @@ export type CloudflareExport = {
 };
 
 export function createCloudflareExampleWorker(options: CloudflareExampleOptions = {}): CloudflareExport {
-  let cached: PluginCMSInstance<typeof collections> | null = null;
-  let initPromise: Promise<PluginCMSInstance<typeof collections>> | null = null;
+  let cached: CMSInstance<typeof collections> | null = null;
+  let initPromise: Promise<CMSInstance<typeof collections>> | null = null;
 
-  async function get(): Promise<PluginCMSInstance<typeof collections>> {
+  async function get(): Promise<CMSInstance<typeof collections>> {
     if (cached) return cached;
     if (!initPromise) initPromise = createCloudflareExampleCMS(options);
     cached = await initPromise;

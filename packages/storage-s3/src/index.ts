@@ -1,6 +1,6 @@
+import { assertStorageKey } from "@hono-cms/core";
 import { DeleteObjectCommand, GetObjectCommand, HeadBucketCommand, HeadObjectCommand, PutObjectCommand, S3Client, type S3ClientConfig } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { assertStorageKey, registerProvider, type StorageAdapter, type StoragePutOptions, type StorageSignedUpload, type StorageSignedUploadOptions, type StoredObject } from "@hono-cms/core";
 
 export type S3ClientLike = {
   send(command: unknown): Promise<unknown>;
@@ -146,7 +146,6 @@ function isNotFound(error: unknown): boolean {
   return maybe.name === "NoSuchKey" || maybe.$metadata?.httpStatusCode === 404;
 }
 
-registerProvider<S3StorageConfig, StorageAdapter>("storage", "s3", createS3Storage);
 
 /** Preferred factory name per U24 — explicit alias of `createS3Storage`. */
 export const s3Storage = createS3Storage;

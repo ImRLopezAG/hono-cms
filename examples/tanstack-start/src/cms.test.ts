@@ -67,7 +67,7 @@ describe("Hono CMS on TanStack Start (plugin shape)", () => {
       body: JSON.stringify({
         title: "TanStack Start plugin shape",
         slug: "tanstack-start-plugin-shape",
-        body: "Created via createPluginCMS through a TanStack Start splat route."
+        body: "Created via createCMS through a TanStack Start splat route."
       })
     }));
     expect(created.status).toBe(201);

@@ -175,6 +175,18 @@ export type LocaleVariant = {
   updatedAt: string;
 };
 
+/**
+ * Legacy identity shape, retained as a shared type for plugins that
+ * still narrow the opaque `Identity` to a userId/roles tuple. New
+ * code should treat `Identity = unknown` and let each AuthPlugin
+ * narrow its own shape.
+ */
+export type AuthSession = {
+  userId: string;
+  roles: string[];
+  email?: string;
+};
+
 export type TranslationStore = {
   getVariant(collection: string, documentId: string, locale: string): Promise<LocaleVariant | null>;
   listVariants(collection: string, documentId: string): Promise<LocaleVariant[]>;
@@ -190,19 +202,6 @@ export type TranslationStore = {
     provider?: string;
     translatedAt?: string;
   }): Promise<LocaleVariant>;
-  health?(): Promise<HealthStatus>;
-};
-
-export type AuthSession = {
-  userId: string;
-  roles: string[];
-  email?: string;
-};
-
-export type AuthAdapter = {
-  readonly provider: string;
-  sessionFromRequest(request: Request): Promise<AuthSession | null>;
-  handleAuth?(request: Request): Promise<Response>;
   health?(): Promise<HealthStatus>;
 };
 

@@ -75,7 +75,7 @@ describe("Hono CMS on Next.js App Router (plugin shape)", () => {
       body: JSON.stringify({
         title: "Next plugin post",
         slug: "next-plugin-post",
-        body: "Created via createPluginCMS over the Next.js App Router."
+        body: "Created via createCMS over the Next.js App Router."
       })
     });
     expect(created.status).toBe(201);

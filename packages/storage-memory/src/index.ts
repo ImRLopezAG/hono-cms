@@ -1,4 +1,4 @@
-import { assertStorageKey, registerProvider, type StorageAdapter, type StoragePutOptions, type StorageSignedUpload, type StorageSignedUploadOptions, type StoredObject } from "@hono-cms/core";
+import { assertStorageKey } from "@hono-cms/core";
 
 export type MemoryStorageConfig = {
   provider: "memory";
@@ -81,7 +81,6 @@ async function toBytes(body: Blob | ArrayBuffer | Uint8Array | string): Promise<
   return new Uint8Array(await body.arrayBuffer());
 }
 
-registerProvider<MemoryStorageConfig, StorageAdapter>("storage", "memory", createMemoryStorage);
 
 /** Preferred factory name per U24 — explicit alias of `createMemoryStorage`. */
 export const memoryStorage = createMemoryStorage;

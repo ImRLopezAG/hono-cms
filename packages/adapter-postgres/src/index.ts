@@ -1,5 +1,4 @@
 import { PortableDocumentAdapter, createSqlDocumentExecutor, type DocumentExecutor, type SqlStatementExecutor } from "@hono-cms/adapter-kit";
-import { registerProvider, type DatabaseAdapter } from "@hono-cms/core";
 import type { CMSCollections } from "@hono-cms/schema";
 
 export type PostgresMode = "tcp" | "http";
@@ -54,7 +53,6 @@ export function createPostgresAdapter<Collections extends CMSCollections>(config
   return new PostgresAdapter(config);
 }
 
-registerProvider<PostgresAdapterConfig, DatabaseAdapter>("db", "postgres", createPostgresAdapter);
 
 /** Preferred factory name per U24 — explicit alias of `createPostgresAdapter`. */
 export const postgresAdapter = createPostgresAdapter;

@@ -1,5 +1,4 @@
 import { PortableDocumentAdapter, createSqlDocumentExecutor, type DocumentExecutor, type SqlStatementExecutor } from "@hono-cms/adapter-kit";
-import { registerProvider, type DatabaseAdapter } from "@hono-cms/core";
 import type { CMSCollections } from "@hono-cms/schema";
 
 export type D1DatabaseLike = SqlStatementExecutor & {
@@ -47,7 +46,6 @@ export function createD1Adapter<Collections extends CMSCollections>(config: D1Ad
   return new D1Adapter(config);
 }
 
-registerProvider<D1AdapterConfig, DatabaseAdapter>("db", "d1", createD1Adapter);
 
 function toD1Executor(binding: D1DatabaseLike): SqlStatementExecutor {
   if (binding.query || binding.execute) return binding;
