@@ -8,7 +8,15 @@ const cliPackageJson = new URL("../../package.json", import.meta.url);
 
 const packageEntrypoints: Record<string, string[]> = {
   "packages/adapter-memory": ["index.js", "index.d.ts", "index.d.ts.map"],
-  "packages/cache": ["index.js", "index.d.ts", "index.d.ts.map"],
+  "packages/cache": [
+    "index.js",
+    "index.d.ts",
+    "index.d.ts.map",
+    "plugin.js",
+    "plugin.d.ts",
+    "plugin.d.ts.map",
+    "adapters"
+  ],
   "packages/cli": ["index.js", "index.d.ts", "index.d.ts.map"],
   "packages/jobs": ["index.js", "index.d.ts", "index.d.ts.map"],
   "packages/platform": [
