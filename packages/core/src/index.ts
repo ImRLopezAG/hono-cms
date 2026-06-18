@@ -33,30 +33,37 @@ export {
 
 export { CMSPluginError } from "./plugins/types";
 export type {
+  AuditService,
   AuthPlugin,
   Authorize,
   AuthorizeAction,
   Awaitable,
   CMSEvents,
   CMSPluginCapabilities,
+  CMSPluginServices,
   FieldDef,
   FieldType,
   HookDeclaration,
   HookMatcher,
   HookRegistry,
+  I18nService,
   Identity,
+  JobsService,
   LifecycleHookContext,
   LifecycleHookEvent,
   LifecycleHookHandler,
+  MediaService,
   MiddlewareDeclaration,
   MountPhase,
+  OpenAPIService,
   Plugin,
   PluginContext,
   PluginEvents,
   PluginServices,
   PluginTableDef,
   RateLimitDeclaration,
-  SchemaExtension
+  SchemaExtension,
+  WebhooksService
 } from "./plugins/types";
 
 export { runHealthChecks, sanitizeError, withTimeout } from "./health";

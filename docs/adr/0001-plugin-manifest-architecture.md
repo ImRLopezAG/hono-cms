@@ -101,11 +101,29 @@ real meaning, with three intentional divergences:
    Acceptable because (a) `createAuthClient` is out of scope for v1 and
    (b) a future client SDK can layer over OpenAPI.
 
-2. **Service registry typing is `as`-cast.** `ctx.plugins.get<T>(id)`
-   requires the caller to supply `T`. Better Auth uses TypeScript module
-   augmentation; we accept the looser typing for v1 and reserve the right
-   to tighten it via `declare module "@hono-cms/core" { interface
-   CMSPluginServices { cache: CacheAdapter } }` in a follow-up.
+2. **Service registry typing — typed via core's canonical `CMSPluginServices`
+   interface.** `PluginServices.get<K extends string>(id: K)` resolves the
+   return type through a registry mapping declared in `@hono-cms/core`:
+
+   ```ts
+   export interface CMSPluginServices {
+     cache: CacheAdapter;
+     jobs: JobsService;
+     "auth-tokens": AuthTokensService;
+     audit: AuditService;
+     i18n: I18nService;
+     webhooks: WebhooksService;
+     media: MediaService;
+     openapi: OpenAPIService;
+   }
+   ```
+
+   The kernel ships canonical contracts for every first-party service, so
+   `ctx.plugins.get("cache")` returns `CacheAdapter` without generic args or
+   casts. Third-party plugins extend the registry via module augmentation —
+   the same pattern Better Auth and tRPC use. This was originally deferred to
+   v1+ but landed inline after the kernel cut. See CONTEXT.md `Service
+   registry` for the consumer-side guide.
 
 3. **Identity opacity is a contract, not a runtime guard.** TypeScript
    marks `ctx.var.identity` as written-by-AuthPlugin-only via convention.

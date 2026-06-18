@@ -50,7 +50,7 @@ describe("audit() — plugin shape", () => {
     const { app, ctx } = bootstrap();
     await installPlugins([audit()], app, ctx);
 
-    const service = ctx.plugins.get<AuditService>(AUDIT_PLUGIN_ID);
+    const service = ctx.plugins.get("audit");
     expect(service.store).toBeDefined();
     expect(service.config.retentionDays).toBe(90);
   });
@@ -60,7 +60,7 @@ describe("audit() — event subscription writes one row per mutation", () => {
   it("content:after-create writes a create row", async () => {
     const { app, ctx } = bootstrap();
     await installPlugins([audit()], app, ctx);
-    const service = ctx.plugins.get<AuditService>(AUDIT_PLUGIN_ID);
+    const service = ctx.plugins.get("audit");
 
     await ctx.events.emit("content:after-create", {
       collection: "articles",
@@ -84,7 +84,7 @@ describe("audit() — event subscription writes one row per mutation", () => {
   it("content:after-update writes an update row with before+after diff", async () => {
     const { app, ctx } = bootstrap();
     await installPlugins([audit()], app, ctx);
-    const service = ctx.plugins.get<AuditService>(AUDIT_PLUGIN_ID);
+    const service = ctx.plugins.get("audit");
 
     await ctx.events.emit("content:after-update", {
       collection: "articles",
@@ -104,7 +104,7 @@ describe("audit() — event subscription writes one row per mutation", () => {
   it("content:after-delete writes a delete row", async () => {
     const { app, ctx } = bootstrap();
     await installPlugins([audit()], app, ctx);
-    const service = ctx.plugins.get<AuditService>(AUDIT_PLUGIN_ID);
+    const service = ctx.plugins.get("audit");
 
     await ctx.events.emit("content:after-delete", {
       collection: "articles",
@@ -123,7 +123,7 @@ describe("audit() — event subscription writes one row per mutation", () => {
   it("content:after-publish and content:after-unpublish each write one row", async () => {
     const { app, ctx } = bootstrap();
     await installPlugins([audit()], app, ctx);
-    const service = ctx.plugins.get<AuditService>(AUDIT_PLUGIN_ID);
+    const service = ctx.plugins.get("audit");
 
     await ctx.events.emit("content:after-publish", {
       collection: "articles",
@@ -146,7 +146,7 @@ describe("audit() — event subscription writes one row per mutation", () => {
   it("media:after-upload and media:after-delete write media rows", async () => {
     const { app, ctx } = bootstrap();
     await installPlugins([audit()], app, ctx);
-    const service = ctx.plugins.get<AuditService>(AUDIT_PLUGIN_ID);
+    const service = ctx.plugins.get("audit");
 
     await ctx.events.emit("media:after-upload", {
       record: { id: "m-1", filename: "a.png" },
@@ -168,7 +168,7 @@ describe("audit() — event subscription writes one row per mutation", () => {
   it("schema:after-collection-{add,update,remove} write schema_change rows", async () => {
     const { app, ctx } = bootstrap();
     await installPlugins([audit()], app, ctx);
-    const service = ctx.plugins.get<AuditService>(AUDIT_PLUGIN_ID);
+    const service = ctx.plugins.get("audit");
 
     const collectionDef = articles.articles as any;
 
@@ -193,7 +193,7 @@ describe("audit() — config knobs", () => {
   it("excludeFields are stripped from the recorded diff", async () => {
     const { app, ctx } = bootstrap();
     await installPlugins([audit({ excludeFields: ["ssn"] })], app, ctx);
-    const service = ctx.plugins.get<AuditService>(AUDIT_PLUGIN_ID);
+    const service = ctx.plugins.get("audit");
 
     await ctx.events.emit("content:after-update", {
       collection: "articles",
@@ -211,7 +211,7 @@ describe("audit() — config knobs", () => {
   it("maxFieldBytes truncates oversize values", async () => {
     const { app, ctx } = bootstrap();
     await installPlugins([audit({ maxFieldBytes: 16 })], app, ctx);
-    const service = ctx.plugins.get<AuditService>(AUDIT_PLUGIN_ID);
+    const service = ctx.plugins.get("audit");
 
     await ctx.events.emit("content:after-create", {
       collection: "articles",
@@ -274,7 +274,7 @@ describe("audit() — jobs-runtime integration", () => {
       identity: ADMIN_IDENTITY,
       request: makeRequest()
     });
-    const service = ctx.plugins.get<AuditService>(AUDIT_PLUGIN_ID);
+    const service = ctx.plugins.get("audit");
     const { items } = await service.store.list({});
     expect(items.length).toBe(1);
   });
@@ -284,7 +284,7 @@ describe("audit() — jobs-runtime integration", () => {
     const { app, ctx } = bootstrap();
     await installPlugins([jobsRuntime({ adapter }), audit({ retentionDays: 1 })], app, ctx);
 
-    const service = ctx.plugins.get<AuditService>(AUDIT_PLUGIN_ID);
+    const service = ctx.plugins.get("audit");
     // Seed an old entry directly.
     await service.store.append({
       id: "old-1",
@@ -331,7 +331,7 @@ describe("audit() — store fault tolerance", () => {
   it("falls back to anonymous actor when identity is missing or malformed", async () => {
     const { app, ctx } = bootstrap();
     await installPlugins([audit()], app, ctx);
-    const service = ctx.plugins.get<AuditService>(AUDIT_PLUGIN_ID);
+    const service = ctx.plugins.get("audit");
 
     await ctx.events.emit("content:after-create", {
       collection: "articles",

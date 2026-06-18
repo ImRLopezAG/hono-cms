@@ -38,7 +38,7 @@ async function bootstrap(
   });
   const ctx = createPluginContext({ collections: articles, db, storage, env: {} });
   await installPlugins([mediaPlugin(pluginOpts)], app, ctx);
-  const service = ctx.plugins.get<MediaService>("media");
+  const service = ctx.plugins.get("media");
   return { app, ctx, db, storage, service };
 }
 

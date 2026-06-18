@@ -53,10 +53,6 @@ export type AuditService = {
   readonly config: Required<Pick<AuditConfig, "retentionDays" | "excludeFields" | "maxFieldBytes">>;
 };
 
-type JobsService = {
-  registerJob: (name: string, handler: (payload: unknown) => unknown | Promise<unknown>) => void;
-};
-
 /**
  * Build the audit plugin manifest.
  *
@@ -100,11 +96,12 @@ export function audit(opts: AuditConfig = {}): Plugin {
 
     async app(app, ctx) {
       // Expose the store on the plugin registry so tests, admin tooling, and
-      // sibling plugins can reach it without re-instantiating.
-      ctx.plugins.register(AUDIT_PLUGIN_ID, {
-        store,
-        config
-      } satisfies AuditService);
+      // sibling plugins can reach it without re-instantiating. The producer's
+      // richer `AuditService` includes `config`; core's canonical contract
+      // narrows to `store`, so we assign through a variable to satisfy both
+      // excess-property checks and structural assignment.
+      const service: AuditService = { store, config };
+      ctx.plugins.register(AUDIT_PLUGIN_ID, service);
 
       // Mount the read API. The route file owns query parsing + admin gating.
       mountAuditRoutes(app, store);
@@ -253,7 +250,7 @@ export function audit(opts: AuditConfig = {}): Plugin {
       // themselves in that case.
       if (ctx.plugins.has("jobs")) {
         try {
-          const jobs = ctx.plugins.get<JobsService>("jobs");
+          const jobs = ctx.plugins.get("jobs");
           if (typeof jobs?.registerJob === "function") {
             jobs.registerJob(AUDIT_CLEANUP_JOB_NAME, async () => {
               await auditLogCleanupJob({ store, retentionDays: config.retentionDays });

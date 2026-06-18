@@ -61,7 +61,7 @@ export function contentCache(opts: ContentCacheConfig = {}): Plugin {
     id: CONTENT_CACHE_PLUGIN_ID,
     requires: ["cache"],
     app: (app, ctx) => {
-      const cache = ctx.plugins.get<CacheAdapter>("cache");
+      const cache = ctx.plugins.get("cache");
 
       // 1) Cache invalidation — wired against the event bus.
       subscribeInvalidationEvents(ctx, cache, keyPrefix);

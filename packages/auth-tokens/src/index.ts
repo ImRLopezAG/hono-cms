@@ -42,3 +42,34 @@ export { permissionLookup } from "./authorize";
 export { ROLES_TABLE } from "./tables/roles";
 export { readToken } from "./protected";
 export { generateToken, hashToken, getTokenPrefix } from "./service/hashing";
+
+import type { TokensAuthService } from "./plugin";
+
+/**
+ * Type-only augmentation: register the full producer-side `TokensAuthService`
+ * shape on the kernel's open `CMSPluginServices` registry so importing this
+ * package gives `ctx.plugins.get("auth-tokens")` the rich type for free —
+ * no generic args, no casts, no codegen step.
+ *
+ * This is the canonical pattern third-party AuthPlugin authors should copy:
+ *
+ * ```ts
+ * // your-auth-plugin/src/index.ts
+ * import type { MyAuthService } from "./plugin";
+ *
+ * declare module "@hono-cms/core" {
+ *   interface CMSPluginServices {
+ *     "my-auth": MyAuthService;
+ *   }
+ * }
+ * ```
+ *
+ * The registration only flows into a consumer's type graph when they import
+ * something (anything) from this package — usually `tokensAuth` itself in
+ * their `createCMS({ plugins: [tokensAuth({...})] })` call.
+ */
+declare module "@hono-cms/core" {
+  interface CMSPluginServices {
+    "auth-tokens": TokensAuthService;
+  }
+}

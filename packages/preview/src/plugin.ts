@@ -38,7 +38,7 @@ export function preview(opts: PreviewConfig = {}): Plugin {
     id: PREVIEW_PLUGIN_ID,
     requires: ["cache"],
     app: (app, ctx) => {
-      const cache = ctx.plugins.get<CacheAdapter>("cache");
+      const cache = ctx.plugins.get("cache");
       mountPreviewRoutes(app, { cache, config });
     }
   });

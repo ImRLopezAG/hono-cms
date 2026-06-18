@@ -41,14 +41,14 @@ describe("memoryCache() plugin manifest", () => {
     await installPlugins([memoryCache({})], app, ctx);
 
     expect(ctx.plugins.has("cache")).toBe(true);
-    const cache = ctx.plugins.get<CacheAdapter>("cache");
+    const cache = ctx.plugins.get("cache");
     expect(cache.provider).toBe("memory");
   });
 
   test("registered adapter supports get/set/delete/sweep/health", async () => {
     const { app, ctx } = newCtxAndApp();
     await installPlugins([memoryCache({})], app, ctx);
-    const cache = ctx.plugins.get<CacheAdapter>("cache");
+    const cache = ctx.plugins.get("cache");
 
     await cache.set("k", { hello: "world" });
     await expect(cache.get("k")).resolves.toEqual({ hello: "world" });
@@ -104,7 +104,7 @@ describe("memoryCache() workers-safety", () => {
       await installPlugins([memoryCache({})], app, ctx);
       expect(spy).not.toHaveBeenCalled();
 
-      const cache = ctx.plugins.get<CacheAdapter & { destroy(): void }>("cache");
+      const cache = ctx.plugins.get("cache");
       await cache.set("hot", 1);
       expect(spy).toHaveBeenCalledTimes(1);
 
@@ -127,7 +127,7 @@ describe("cachePlugin() bring-your-own-adapter", () => {
     };
     const { app, ctx } = newCtxAndApp();
     await installPlugins([cachePlugin(fake)], app, ctx);
-    expect(ctx.plugins.get<CacheAdapter>("cache")).toBe(fake);
+    expect(ctx.plugins.get("cache")).toBe(fake);
   });
 });
 
@@ -145,7 +145,7 @@ describe("kvCache() and upstashCache() plugin manifests", () => {
 
       const { app, ctx } = newCtxAndApp();
       await installPlugins([plugin], app, ctx);
-      expect(ctx.plugins.get<CacheAdapter>("cache").provider).toBe("kv");
+      expect(ctx.plugins.get("cache").provider).toBe("kv");
     } finally {
       warn.mockRestore();
     }
@@ -163,6 +163,6 @@ describe("kvCache() and upstashCache() plugin manifests", () => {
 
     const { app, ctx } = newCtxAndApp();
     await installPlugins([plugin], app, ctx);
-    expect(ctx.plugins.get<CacheAdapter>("cache").provider).toBe("upstash");
+    expect(ctx.plugins.get("cache").provider).toBe("upstash");
   });
 });

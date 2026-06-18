@@ -106,7 +106,7 @@ describe("i18n() — plugin shape", () => {
 
   it("registers the I18nService on the plugin registry after install", async () => {
     const { ctx } = await bootstrap({ provider: stubProvider() });
-    const service = ctx.plugins.get<I18nService>(I18N_PLUGIN_ID);
+    const service = ctx.plugins.get("i18n");
     expect(service.store).toBeDefined();
     expect(service.provider?.provider).toBe("test-provider");
   });
@@ -236,7 +236,7 @@ describe("i18n() — translation job", () => {
     );
     expect(res.status).toBe(200);
 
-    const service = ctx.plugins.get<I18nService>(I18N_PLUGIN_ID);
+    const service = ctx.plugins.get("i18n");
     const stored = await service.store.getVariant("pages", page.id, "es");
     expect(stored?.status).toBe("complete");
     expect(stored?.fields).toMatchObject({ title: "[es] Hello" });

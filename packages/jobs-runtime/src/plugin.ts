@@ -1,9 +1,8 @@
 import {
   createPlugin,
   type CacheAdapter,
-  type JobEnqueueOptions,
-  type JobHandler,
   type JobsAdapter,
+  type JobsService as JobsServiceContract,
   type Plugin,
   type PluginContext
 } from "@hono-cms/core";
@@ -30,28 +29,12 @@ export const JOBS_RUNTIME_ID = "jobs";
  * - verifying incoming requests through `adapter.verify` when configured;
  * - shaping 401/500 responses uniformly across every job.
  */
-export type JobsService = {
-  /**
-   * Register a job handler under `name`. Mounts `POST /cms/jobs/<name>` (and
-   * `GET` for cron-style probes) and routes verified requests to `handler`.
-   * Throws if `name` is already registered.
-   */
-  registerJob(name: string, handler: JobHandler): void;
-  /**
-   * Dispatch a registered job in-process. Used by tests and by composite
-   * "scheduled" handlers that fan out to multiple jobs.
-   */
-  dispatch(name: string, payload?: unknown): Promise<void>;
-  /**
-   * Enqueue an HTTP-style job (e.g. `/cms/jobs/webhook-retry`) through the
-   * configured adapter. Delegates to `adapter.enqueue` when available;
-   * falls back to in-process `dispatch` for adapters without an enqueue
-   * primitive (memory, none).
-   */
-  enqueue(endpoint: string, body?: unknown, opts?: JobEnqueueOptions): Promise<void>;
-  /** Read-only handle to the underlying adapter (for health checks, etc.). */
-  readonly adapter: JobsAdapter;
-};
+/**
+ * The runtime's published service shape. Aligns with the canonical
+ * `JobsService` contract exported from `@hono-cms/core`, which is what
+ * `ctx.plugins.get("jobs")` returns universally.
+ */
+export type JobsService = JobsServiceContract;
 
 export type JobsRuntimeOptions = {
   /** Backing `JobsAdapter` (e.g. `memoryJobs({})`, `qstashJobs({ ... })`). */
@@ -199,7 +182,7 @@ function resolveCache<Collections extends CMSCollections>(
 ): CacheAdapter | null {
   if (!ctx.plugins.has("cache")) return null;
   try {
-    const cache = ctx.plugins.get<CacheAdapter>("cache");
+    const cache = ctx.plugins.get("cache");
     return cache ?? null;
   } catch {
     return null;

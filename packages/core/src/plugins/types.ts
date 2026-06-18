@@ -7,7 +7,20 @@ import type {
   FieldsDefinition
 } from "@hono-cms/schema";
 import type { HonoCMSEnv } from "../types/instance";
-import type { DatabaseAdapter, MediaStore, StorageAdapter } from "../types/providers";
+import type {
+  AuditStore,
+  CacheAdapter,
+  DatabaseAdapter,
+  JobEnqueueOptions,
+  JobHandler,
+  JobsAdapter,
+  MediaStore,
+  StorageAdapter,
+  TranslationProvider,
+  TranslationStore,
+  WebhookStore,
+  WebhookTarget
+} from "../types/providers";
 
 export type Awaitable<T> = T | Promise<T>;
 
@@ -106,10 +119,123 @@ export type PluginEvents = {
   emit<E extends keyof CMSEvents>(event: E, payload: CMSEvents[E]): Promise<void>;
 };
 
+/**
+ * Cross-plugin contract for the `"jobs"` service published by
+ * `@hono-cms/jobs-runtime`. The runtime's full `JobsService` extends this; the
+ * minimum surface needed for consumers like `audit`, `drafts`, `i18n`, and
+ * `webhooks` lives here so cross-plugin consumption types automatically.
+ */
+export interface JobsService {
+  /** Register a job handler under `name`. Mounts `POST /cms/jobs/<name>`. */
+  registerJob(name: string, handler: JobHandler): void;
+  /** Dispatch a registered job in-process. */
+  dispatch(name: string, payload?: unknown): Promise<void>;
+  /** Enqueue an HTTP-style job through the configured adapter. */
+  enqueue(endpoint: string, body?: unknown, opts?: JobEnqueueOptions): Promise<void>;
+  /** Read-only handle to the underlying queue adapter. */
+  readonly adapter: JobsAdapter;
+}
+
+/**
+ * Canonical contract for the `"audit"` service published by `@hono-cms/audit`.
+ * The full shape lives here so consumers and tests get typed access without
+ * importing the producer package.
+ */
+export interface AuditService {
+  readonly store: AuditStore;
+  readonly config: {
+    readonly retentionDays: number;
+    readonly excludeFields: readonly string[];
+    readonly maxFieldBytes: number;
+  };
+}
+
+/**
+ * Canonical contract for the `"i18n"` service published by `@hono-cms/i18n`.
+ */
+export interface I18nService {
+  readonly store: TranslationStore;
+  readonly provider: TranslationProvider | null;
+  readonly config: {
+    readonly autoTranslate: boolean;
+    readonly translateOnPublish: boolean;
+  };
+}
+
+/**
+ * Canonical contract for the `"webhooks"` service published by
+ * `@hono-cms/webhooks`.
+ */
+export interface WebhooksService {
+  readonly store: WebhookStore;
+  readonly targets: readonly WebhookTarget[];
+}
+
+/**
+ * Canonical contract for the `"media"` service published by
+ * `@hono-cms/media`.
+ */
+export interface MediaService {
+  readonly store: MediaStore;
+  readonly config: {
+    readonly presignExpirySeconds: number;
+    readonly maxPresignUploadSizeBytes: number;
+    readonly allowActiveContent: boolean;
+  };
+}
+
+/**
+ * Cross-plugin contract for the `"openapi"` service published by
+ * `@hono-cms/openapi`. Other plugins call `addPath(...)` when they mount
+ * their own routes so the assembled document stays in lockstep with the
+ * running API surface.
+ */
+export interface OpenAPIService {
+  refresh(): void;
+  getSpec(): unknown;
+  addPath(path: string, methods: unknown): void;
+}
+
+/**
+ * Open registry of typed plugin services. The canonical service IDs ship with
+ * their minimum cross-plugin contracts inline so `ctx.plugins.get("cache")`
+ * returns `CacheAdapter` universally — no per-package import dance needed.
+ *
+ * Third-party plugins can extend the registry via module augmentation:
+ *
+ *     declare module "@hono-cms/core" {
+ *       interface CMSPluginServices {
+ *         "my-plugin": MyService;
+ *       }
+ *     }
+ *
+ * IDs not registered fall through to `unknown`, preserving the open-ended
+ * nature of the service registry while rewarding contributors who declare
+ * their contract.
+ */
+export interface CMSPluginServices {
+  cache: CacheAdapter;
+  jobs: JobsService;
+  audit: AuditService;
+  i18n: I18nService;
+  webhooks: WebhooksService;
+  media: MediaService;
+  openapi: OpenAPIService;
+  // `"auth-tokens"` deliberately lives in `@hono-cms/auth-tokens` itself —
+  // see that package's `declare module "@hono-cms/core"` block. AuthPlugin
+  // implementations are the most variable surface (different vendors expose
+  // different shapes), so the augmentation pattern belongs at the producer.
+}
+
 export type PluginServices = {
-  get<T = unknown>(id: string): T;
+  get<K extends string>(
+    id: K
+  ): K extends keyof CMSPluginServices ? CMSPluginServices[K] : unknown;
   has(id: string): boolean;
-  register(id: string, value: unknown): void;
+  register<K extends string>(
+    id: K,
+    value: K extends keyof CMSPluginServices ? CMSPluginServices[K] : unknown
+  ): void;
 };
 
 export type PluginContext<Collections extends CMSCollections = CMSCollections> = {

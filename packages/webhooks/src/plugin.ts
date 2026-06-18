@@ -1,5 +1,4 @@
 import { createPlugin, type CMSEvents, type Plugin } from "@hono-cms/core";
-import type { JobsService } from "@hono-cms/jobs-runtime";
 import { MemoryWebhookStore } from "./store/memory";
 import { webhookDeliveriesTable, webhooksTable } from "./tables";
 import {
@@ -104,7 +103,7 @@ export function webhooks(opts: WebhooksConfig = {}): Plugin {
         targets: staticTargets
       } satisfies WebhooksService);
 
-      const jobs = ctx.plugins.get<JobsService>("jobs");
+      const jobs = ctx.plugins.get("jobs");
 
       // -- Jobs --------------------------------------------------------------
 

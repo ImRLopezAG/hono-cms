@@ -121,12 +121,62 @@ and consume services produced by earlier plugins:
 ctx.plugins.register("cache", cacheAdapterInstance);
 
 // In a later plugin's app(...)  (declares requires: ["cache"])
-const cache = ctx.plugins.get<CacheAdapter>("cache");
+const cache = ctx.plugins.get("cache");  // typed as CacheAdapter
 ```
 
-The typing on `get<T>(id)` is `as`-cast — the caller asserts the shape. A
-future improvement could use TypeScript module augmentation (like Better
-Auth) for precise typing.
+### Typing
+
+`PluginServices.get/register` is generic over the ID `K extends string` and
+resolves the return type through a typed registry interface declared in
+`@hono-cms/core`:
+
+```ts
+export interface CMSPluginServices {
+  cache: CacheAdapter;
+  jobs: JobsService;
+  audit: AuditService;
+  i18n: I18nService;
+  webhooks: WebhooksService;
+  media: MediaService;
+  openapi: OpenAPIService;
+}
+```
+
+The kernel ships canonical contracts for every infrastructure-y first-party
+service, so `ctx.plugins.get(id)` returns the strong type for any canonical
+ID without generic args or `as` casts. IDs not present in the registry fall
+through to `unknown` (the open-world default).
+
+### Producer-side augmentation (the AuthPlugin pattern)
+
+`"auth-tokens"` deliberately lives in `@hono-cms/auth-tokens` itself — not
+in core's canonical registry — because AuthPlugin implementations are the
+most variable surface (different vendors publish different shapes). Look at
+the bottom of `packages/auth-tokens/src/index.ts` for the canonical pattern:
+
+```ts
+import type { TokensAuthService } from "./plugin";
+
+declare module "@hono-cms/core" {
+  interface CMSPluginServices {
+    "auth-tokens": TokensAuthService;
+  }
+}
+```
+
+Third-party AuthPlugin authors (or any plugin that wants to publish a typed
+service) follow this exact shape. The augmentation flows into a consumer's
+type graph as soon as they import anything from the producer package —
+usually the factory itself (`tokensAuth(...)`) in their `createCMS({ plugins:
+[...] })` call.
+
+Plugins that consume a third-party service they don't hard-depend on (e.g.
+`@hono-cms/graphql` looking for *any* AuthPlugin) cast at the call site
+with a duck-typed shape:
+
+```ts
+const candidate = ctx.plugins.get("auth-tokens") as { identity?: Resolver } | undefined;
+```
 
 ## Event bus (`ctx.events.on/emit`)
 

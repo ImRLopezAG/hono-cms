@@ -54,11 +54,6 @@ export type I18nService = {
   readonly config: Required<Pick<I18nConfig, "autoTranslate" | "translateOnPublish">>;
 };
 
-type JobsService = {
-  registerJob: (name: string, handler: (payload: unknown) => unknown | Promise<unknown>) => void;
-  enqueue: JobsEnqueue;
-};
-
 /**
  * Build the i18n plugin manifest.
  *
@@ -107,19 +102,18 @@ export function i18n(opts: I18nConfig = {}): Plugin {
 
     async app(app, ctx) {
       // Publish the service so tests + sibling plugins can reach the store and
-      // provider without re-instantiating them.
-      ctx.plugins.register(I18N_PLUGIN_ID, {
-        store,
-        provider,
-        config
-      } satisfies I18nService);
+      // provider without re-instantiating them. Producer's `I18nService`
+      // includes `config`; core's canonical contract narrows to `store` +
+      // `provider`, so we assign through a variable.
+      const service: I18nService = { store, provider, config };
+      ctx.plugins.register(I18N_PLUGIN_ID, service);
 
       // ---- Jobs runtime integration -------------------------------------
       //
       // `requires: ["jobs"]` guarantees the runtime is installed first; pull
       // the service so we can register the `translation` job and expose an
       // `enqueue` thunk to the routes.
-      const jobs = ctx.plugins.get<JobsService>("jobs");
+      const jobs = ctx.plugins.get("jobs");
       const translationJob = createTranslationJob({
         collections: ctx.collections,
         db: ctx.db,

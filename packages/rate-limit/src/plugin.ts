@@ -70,7 +70,7 @@ export function rateLimit(opts: RateLimitOpts = {}): Plugin {
       // to the `requires` ordering constraint enforced by `validateAndOrder`.
       const getCache = (): CacheAdapter | null => {
         if (!ctx.plugins.has("cache")) return null;
-        return ctx.plugins.get<CacheAdapter>("cache");
+        return ctx.plugins.get("cache");
       };
 
       const failOpen = opts.failOpen ?? true;

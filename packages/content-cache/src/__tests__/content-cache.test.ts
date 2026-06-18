@@ -77,7 +77,7 @@ async function makeHarness(opts: { ttlSeconds?: number; session?: unknown } = {}
   return {
     app,
     ctx,
-    cache: ctx.plugins.get<CacheAdapter>("cache"),
+    cache: ctx.plugins.get("cache"),
     calls: () => ({ list: listHandlerCalls, get: getHandlerCalls })
   };
 }
@@ -425,7 +425,7 @@ describe("contentCache() — invalidation on mutation events", () => {
     // fresh subscription is created + immediately torn down — we observe
     // that an event emitted AFTER teardown of an EXTRA subscription does
     // not double-invalidate.
-    const off = subscribeInvalidationEvents(ctx, ctx.plugins.get<CacheAdapter>("cache"), "extra-prefix");
+    const off = subscribeInvalidationEvents(ctx, ctx.plugins.get("cache"), "extra-prefix");
     off();
     // The plugin's own subscription is still active — emitting still
     // invalidates the plugin's cache.
@@ -449,7 +449,7 @@ describe("invalidateContentCache (direct helper)", () => {
   test("bumping the version key invalidates every prior key for that collection", async () => {
     const { app, ctx } = newCtxAndApp();
     await installPlugins([memoryCache({}), contentCache()], app, ctx);
-    const cache = ctx.plugins.get<CacheAdapter>("cache");
+    const cache = ctx.plugins.get("cache");
 
     let calls = 0;
     app.get("/api/posts", (c) => {
@@ -475,10 +475,10 @@ describe("invalidateContentCache (direct helper)", () => {
 /* -------------------------------------------------------------------------- */
 
 describe("PluginContext typing sanity", () => {
-  test("ctx.plugins.get<CacheAdapter>('cache') is the registered instance", async () => {
+  test("ctx.plugins.get('cache') is the registered instance", async () => {
     const { app, ctx } = newCtxAndApp();
     await installPlugins([memoryCache({}), contentCache()], app, ctx);
-    const cache: CacheAdapter = ctx.plugins.get<CacheAdapter>("cache");
+    const cache: CacheAdapter = ctx.plugins.get("cache");
     expect(typeof cache.get).toBe("function");
     expect(typeof cache.set).toBe("function");
     const explicitCtx: PluginContext = ctx;

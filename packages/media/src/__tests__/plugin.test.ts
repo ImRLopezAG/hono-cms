@@ -48,7 +48,7 @@ describe("mediaPlugin() — plugin shape", () => {
   it("registers the MediaService on the plugin registry after install", async () => {
     const { app, ctx } = bootstrap();
     await installPlugins([mediaPlugin()], app, ctx);
-    const service = ctx.plugins.get<MediaService>(MEDIA_PLUGIN_ID);
+    const service = ctx.plugins.get("media");
     expect(service.store).toBeInstanceOf(MemoryMediaStore);
     expect(service.config.presignExpirySeconds).toBe(3600);
     expect(service.config.maxPresignUploadSizeBytes).toBe(1024 * 1024 * 1024);
@@ -76,7 +76,7 @@ describe("mediaPlugin() — plugin shape", () => {
 
     const { app, ctx } = bootstrap();
     await installPlugins([mediaPlugin({ store: customStore })], app, ctx);
-    const service = ctx.plugins.get<MediaService>(MEDIA_PLUGIN_ID);
+    const service = ctx.plugins.get("media");
     expect(service.store).toBe(customStore);
   });
 
@@ -93,7 +93,7 @@ describe("mediaPlugin() — plugin shape", () => {
       app,
       ctx
     );
-    const service = ctx.plugins.get<MediaService>(MEDIA_PLUGIN_ID);
+    const service = ctx.plugins.get("media");
     expect(service.config.allowActiveContent).toBe(true);
     expect(service.config.presignExpirySeconds).toBe(120);
     expect(service.config.maxPresignUploadSizeBytes).toBe(1024);

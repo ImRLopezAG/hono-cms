@@ -8,11 +8,6 @@ export const DRAFTS_PLUGIN_ID = "drafts";
 /** Job name registered with `@hono-cms/jobs-runtime`. */
 export const SCHEDULED_PUBLISH_JOB_NAME = "scheduled-publish";
 
-/** Minimal handle on the jobs runtime service exposed by `@hono-cms/jobs-runtime`. */
-type JobsService = {
-  registerJob: (name: string, handler: (payload: unknown) => unknown | Promise<unknown>) => void;
-};
-
 export type DraftsConfig = {
   /**
    * Maximum number of due records the scheduled-publish job promotes per tick.
@@ -59,7 +54,7 @@ export function drafts(opts: DraftsConfig = {}): Plugin {
       // Wire the background promotion job. Each promotion routes through this
       // plugin's `publishDocument`, so `content:after-publish` events fire for
       // scheduled promotions exactly the same way they fire for manual ones.
-      const jobs = ctx.plugins.get<JobsService>("jobs");
+      const jobs = ctx.plugins.get("jobs");
       jobs.registerJob(SCHEDULED_PUBLISH_JOB_NAME, async () => {
         await runScheduledPublishes({
           db: ctx.db,

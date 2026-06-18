@@ -47,7 +47,7 @@ describe("jobsRuntime — plugin shape", () => {
     await installPlugins([jobsRuntime({ adapter: memoryJobs({}) })], app, ctx);
 
     const handler = vi.fn<JobHandler>(async () => {});
-    const service = ctx.plugins.get<JobsService>(JOBS_RUNTIME_ID);
+    const service = ctx.plugins.get("jobs");
     service.registerJob("foo", handler);
 
     const res = await app.request("/cms/jobs/foo", {
@@ -67,7 +67,7 @@ describe("jobsRuntime — plugin shape", () => {
     const adapter = memoryJobs({});
     const { app, ctx } = bootstrap(adapter);
     await installPlugins([jobsRuntime({ adapter })], app, ctx);
-    const service = ctx.plugins.get<JobsService>(JOBS_RUNTIME_ID);
+    const service = ctx.plugins.get("jobs");
 
     const handler = vi.fn<JobHandler>(async () => {});
     service.registerJob("dispatched", handler);
@@ -82,7 +82,7 @@ describe("jobsRuntime — plugin shape", () => {
   it("registerJob throws when the same name is registered twice", async () => {
     const { app, ctx } = bootstrap(memoryJobs({}));
     await installPlugins([jobsRuntime({ adapter: memoryJobs({}) })], app, ctx);
-    const service = ctx.plugins.get<JobsService>(JOBS_RUNTIME_ID);
+    const service = ctx.plugins.get("jobs");
 
     service.registerJob("dupe", async () => {});
     expect(() => service.registerJob("dupe", async () => {})).toThrow(/already registered/);
@@ -101,7 +101,7 @@ describe("jobsRuntime — verification", () => {
 
     const { app, ctx } = bootstrap(adapter);
     await installPlugins([jobsRuntime({ adapter })], app, ctx);
-    const service = ctx.plugins.get<JobsService>(JOBS_RUNTIME_ID);
+    const service = ctx.plugins.get("jobs");
     const handler = vi.fn(async () => {});
     service.registerJob("guarded", handler);
 
@@ -122,7 +122,7 @@ describe("jobsRuntime — verification", () => {
 
     const { app, ctx } = bootstrap(adapter);
     await installPlugins([jobsRuntime({ adapter })], app, ctx);
-    const service = ctx.plugins.get<JobsService>(JOBS_RUNTIME_ID);
+    const service = ctx.plugins.get("jobs");
     const handler = vi.fn(async () => {});
     service.registerJob("guarded", handler);
 

@@ -162,7 +162,7 @@ describe("openapi plugin — service registry", () => {
   it("registers a service on ctx.plugins under the OPENAPI_PLUGIN_ID id", async () => {
     const { ctx } = await buildApp();
     expect(ctx.plugins.has(OPENAPI_PLUGIN_ID)).toBe(true);
-    const service = ctx.plugins.get<OpenAPIService>(OPENAPI_PLUGIN_ID);
+    const service = (ctx.plugins.get("openapi") as OpenAPIService);
     expect(typeof service.getSpec).toBe("function");
     expect(typeof service.addPath).toBe("function");
     expect(typeof service.refresh).toBe("function");
@@ -170,7 +170,7 @@ describe("openapi plugin — service registry", () => {
 
   it("addPath injects routes into the served spec", async () => {
     const { app, ctx } = await buildApp();
-    const service = ctx.plugins.get<OpenAPIService>(OPENAPI_PLUGIN_ID);
+    const service = (ctx.plugins.get("openapi") as OpenAPIService);
     service.addPath("/api/api-keys", {
       get: {
         tags: ["api-keys"],
@@ -187,7 +187,7 @@ describe("openapi plugin — service registry", () => {
 
   it("getSpec reflects extra paths and refresh forces a rebuild", async () => {
     const { ctx } = await buildApp();
-    const service = ctx.plugins.get<OpenAPIService>(OPENAPI_PLUGIN_ID);
+    const service = (ctx.plugins.get("openapi") as OpenAPIService);
     const firstSpec = service.getSpec();
     expect(firstSpec.paths["/api/extra"]).toBeUndefined();
 

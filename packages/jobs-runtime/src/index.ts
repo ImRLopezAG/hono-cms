@@ -9,7 +9,9 @@
  * See `docs/plans/2026-05-25-001-refactor-plugin-system-architecture-plan.md`
  * §U12 for the migration rationale.
  */
-export { jobsRuntime, JOBS_RUNTIME_ID, type JobsRuntimeOptions, type JobsService } from "./plugin";
+export { jobsRuntime, JOBS_RUNTIME_ID, type JobsRuntimeOptions } from "./plugin";
 export { runVerifiedJob } from "./dispatcher";
 export { runScheduledPublish } from "./scheduled-publish";
 export { mountJobRoute } from "./routes";
+// JobsService now lives in @hono-cms/core as a canonical service contract.
+export type { JobsService } from "@hono-cms/core";

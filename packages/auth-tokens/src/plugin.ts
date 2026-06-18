@@ -1,10 +1,11 @@
-import { createAuthPlugin, type AuthPlugin } from "@hono-cms/core";
+import { createAuthPlugin, type AuthPlugin, type Identity } from "@hono-cms/core";
 import { runBootstrap, type BootstrapOptions, type BootstrapResult, type BootstrapHooks } from "./bootstrap";
 import { createAuthorize, createIdentityScope, type IdentityScope } from "./authorize";
 import { createProtectedMiddleware } from "./protected";
 import { mountApiKeyRoutes } from "./routes/api-keys";
 import { mountRoleRoutes } from "./routes/roles";
 import { createTokenService, type TokenService } from "./service/tokens";
+import { readToken } from "./protected";
 import { apiKeysTable } from "./tables/api-keys";
 import { rolesTable } from "./tables/roles";
 
@@ -53,6 +54,17 @@ export type TokensAuthOptions = {
 export type TokensAuthService = {
   service: TokenService;
   scope: IdentityScope;
+  /** Result of the first-run bootstrap routine, surfaced once on cold boots. */
+  bootstrap: BootstrapResult;
+  /**
+   * Resolve identity from a `Request`. Returns `null` for missing or invalid
+   * tokens — consumers (e.g., GraphQL) should treat that as anonymous.
+   *
+   * This fulfils the canonical `AuthTokensService.identity` contract exported
+   * from `@hono-cms/core`, so any plugin consuming `ctx.plugins.get("auth-tokens")`
+   * can call `.identity(request, ctx)` without coupling to this package.
+   */
+  identity: (request: Request, ctx: unknown) => Promise<Identity | null>;
 };
 
 /**
@@ -140,14 +152,28 @@ export function tokensAuth(opts: TokensAuthOptions = {}): AuthPlugin {
       if (opts.bootstrap !== undefined) bootstrapInput.options = opts.bootstrap;
       const bootstrapResult = await runBootstrap(bootstrapInput);
 
-      // Register the service on the plugin registry. Stash the bootstrap
-      // result so admin tooling can surface "first run! here's your key"
-      // exactly once on cold boots.
-      ctx.plugins.register(TOKENS_AUTH_ID, {
+      // Register the service on the plugin registry. Includes an `identity`
+      // resolver that fulfils core's canonical `AuthTokensService` contract,
+      // so consumers (e.g., `@hono-cms/graphql`) get a typed `.identity(req)`
+      // call without coupling to this package's internals.
+      const localServiceRef = serviceRef;
+      const service: TokensAuthService = {
         service: serviceRef,
         scope,
-        bootstrap: bootstrapResult
-      } satisfies TokensAuthService & { bootstrap: BootstrapResult });
+        bootstrap: bootstrapResult,
+        identity: async (request) => {
+          const token = readToken(request);
+          if (!token) return null;
+          const result = await localServiceRef.validate(token);
+          if (!result.ok) return null;
+          return {
+            subjectId: result.tokenId,
+            namespace: result.namespace,
+            metadata: result.metadata
+          } as Identity;
+        }
+      };
+      ctx.plugins.register(TOKENS_AUTH_ID, service);
 
       // installAuthorize runs *after* `app(app, ctx)` in the kernel pipeline,
       // so wire a fallback that resolves on the first call.

@@ -71,7 +71,7 @@ describe("tokensAuth plugin — full install via installPlugins", () => {
     expect(rolesResult.items.length).toBe(1);
 
     // Service registered.
-    const registered = ctx.plugins.get<TokensAuthService & { bootstrap: { kind: string; key?: string } }>(TOKENS_AUTH_ID);
+    const registered = (ctx.plugins.get("auth-tokens") as TokensAuthService & { bootstrap: { kind: string; key?: string } });
     expect(registered.service).toBeDefined();
     expect(registered.bootstrap.kind).toBe("generated");
     expect(typeof registered.bootstrap.key).toBe("string");
@@ -86,7 +86,7 @@ describe("tokensAuth plugin — full install via installPlugins", () => {
     const ctx = createPluginContext({ collections: {} as CMSCollections, db, env: {} });
     await installPlugins([tokensAuth({})], app, ctx);
 
-    const registered = ctx.plugins.get<TokensAuthService & { bootstrap: { key?: string } }>(TOKENS_AUTH_ID);
+    const registered = (ctx.plugins.get("auth-tokens") as TokensAuthService & { bootstrap: { key?: string } });
     const bootstrapKey = registered.bootstrap.key as string;
     expect(bootstrapKey).toBeDefined();
 
@@ -107,7 +107,7 @@ describe("tokensAuth plugin — full install via installPlugins", () => {
     const ctx = createPluginContext({ collections: {} as CMSCollections, db, env: {} });
     await installPlugins([tokensAuth({})], app, ctx);
 
-    const registered = ctx.plugins.get<TokensAuthService & { bootstrap: { key?: string } }>(TOKENS_AUTH_ID);
+    const registered = (ctx.plugins.get("auth-tokens") as TokensAuthService & { bootstrap: { key?: string } });
     const bootstrapKey = registered.bootstrap.key as string;
 
     const create = await app.fetch(new Request("http://x/api/api-keys", {
@@ -130,7 +130,7 @@ describe("tokensAuth plugin — full install via installPlugins", () => {
     const ctx = createPluginContext({ collections: {} as CMSCollections, db, env: {} });
     await installPlugins([tokensAuth({})], app, ctx);
 
-    const registered = ctx.plugins.get<TokensAuthService & { bootstrap: { key?: string } }>(TOKENS_AUTH_ID);
+    const registered = (ctx.plugins.get("auth-tokens") as TokensAuthService & { bootstrap: { key?: string } });
     const bootstrapKey = registered.bootstrap.key as string;
 
     // GET /api/roles is admin-gated; hitting it with the bootstrap key
@@ -152,7 +152,7 @@ describe("tokensAuth plugin — full install via installPlugins", () => {
     const ctx = createPluginContext({ collections: {} as CMSCollections, db, env: {} });
     await installPlugins([tokensAuth({})], app, ctx);
 
-    const registered = ctx.plugins.get<TokensAuthService & { bootstrap: { key?: string } }>(TOKENS_AUTH_ID);
+    const registered = (ctx.plugins.get("auth-tokens") as TokensAuthService & { bootstrap: { key?: string } });
     const bootstrapKey = registered.bootstrap.key as string;
 
     // Create a "writer" role with `articles.read = true` only.
@@ -233,7 +233,7 @@ describe("tokensAuth plugin — authorize wildcard precedence", () => {
     const ctx = createPluginContext({ collections: {} as CMSCollections, db, env: {} });
     await installPlugins([tokensAuth({})], app, ctx);
 
-    const registered = ctx.plugins.get<TokensAuthService & { bootstrap: { key?: string } }>(TOKENS_AUTH_ID);
+    const registered = (ctx.plugins.get("auth-tokens") as TokensAuthService & { bootstrap: { key?: string } });
     const bootstrapKey = registered.bootstrap.key as string;
 
     // Create role with wildcard collection, action: read

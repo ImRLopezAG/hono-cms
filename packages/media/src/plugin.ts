@@ -81,10 +81,11 @@ export function mediaPlugin(opts: MediaConfig = {}): Plugin {
     },
 
     app(app, ctx) {
-      ctx.plugins.register(MEDIA_PLUGIN_ID, {
-        store,
-        config
-      } satisfies MediaService);
+      // Producer's `MediaService` is richer than core's canonical contract
+      // (just `{ store }`); assign through a typed variable so structural
+      // subtyping carries the richer shape to the registry value.
+      const service: MediaService = { store, config };
+      ctx.plugins.register(MEDIA_PLUGIN_ID, service);
 
       mountMediaRoutes(app, ctx, {
         store,

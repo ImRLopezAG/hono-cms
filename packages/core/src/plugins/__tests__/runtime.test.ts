@@ -41,13 +41,48 @@ describe("validateAndOrder", () => {
     ).toThrow(CMSPluginError);
   });
 
-  it("throws when requires references a plugin appearing later", () => {
+  it("auto-orders plugins so requires runs before requirer (topo sort)", () => {
+    const ordered = validateAndOrder([
+      createPlugin({ id: "rate-limit", requires: ["cache"] }),
+      createPlugin({ id: "cache" })
+    ]);
+    expect(ordered.map((p) => p.id)).toEqual(["cache", "rate-limit"]);
+  });
+
+  it("handles a chain of three plugins regardless of array order", () => {
+    const ordered = validateAndOrder([
+      createPlugin({ id: "c", requires: ["b"] }),
+      createPlugin({ id: "a" }),
+      createPlugin({ id: "b", requires: ["a"] })
+    ]);
+    expect(ordered.map((p) => p.id)).toEqual(["a", "b", "c"]);
+  });
+
+  it("preserves array order between plugins not constrained by requires", () => {
+    const ordered = validateAndOrder([
+      createPlugin({ id: "first" }),
+      createPlugin({ id: "second" }),
+      createPlugin({ id: "third" })
+    ]);
+    expect(ordered.map((p) => p.id)).toEqual(["first", "second", "third"]);
+  });
+
+  it("throws on a `requires` cycle", () => {
     expect(() =>
       validateAndOrder([
-        createPlugin({ id: "rate-limit", requires: ["cache"] }),
-        createPlugin({ id: "cache" })
+        createPlugin({ id: "a", requires: ["b"] }),
+        createPlugin({ id: "b", requires: ["a"] })
       ])
-    ).toThrow(/appears later/);
+    ).toThrow(/Circular.*requires/);
+  });
+
+  it("throws when an earlier-phase plugin requires a later-phase plugin", () => {
+    expect(() =>
+      validateAndOrder([
+        createPlugin({ id: "early", mountPhase: "early", requires: ["late"] }),
+        createPlugin({ id: "late", mountPhase: "normal" })
+      ])
+    ).toThrow(/later phase/);
   });
 
   it("throws when requires references a missing plugin", () => {
@@ -138,14 +173,16 @@ describe("installPlugins", () => {
       [
         createPlugin({
           id: "cache",
-          app: (_h, c) => { c.plugins.register("cache", { it: "works" }); }
+          app: (_h, c) => { c.plugins.register("test-service", { it: "works" }); }
         }),
         createPlugin({
           id: "consumer",
           requires: ["cache"],
           app: (_h, c) => {
-            expect(c.plugins.has("cache")).toBe(true);
-            expect(c.plugins.get<{ it: string }>("cache").it).toBe("works");
+            expect(c.plugins.has("test-service")).toBe(true);
+            // "test-service" is an arbitrary ID, not registered in CMSPluginServices,
+            // so the registry falls through to `unknown` and we cast at the call site.
+            expect((c.plugins.get("test-service") as { it: string }).it).toBe("works");
           }
         })
       ],
