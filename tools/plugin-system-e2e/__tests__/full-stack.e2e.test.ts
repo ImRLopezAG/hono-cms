@@ -202,21 +202,21 @@ describe("Full plugin stack — request flows", () => {
 });
 
 describe("Full plugin stack — install ordering", () => {
-  it("throws when a plugin's requires references a later plugin", async () => {
+  it("auto-orders plugins so requires runs first (topo sort)", async () => {
     const db = createMemoryDatabase({ provider: "memory", collections });
     const ctx = createPluginContext({ collections, db, env: {} });
     const app = new Hono();
-    await expect(
-      installPlugins(
-        [
-          // rate-limit declares requires: ["cache"] but cache is later in the array
-          rateLimit({ mutations: { limit: 10, window: "1m" } }),
-          memoryCache({})
-        ],
-        app,
-        ctx
-      )
-    ).rejects.toThrowError(/cache/);
+    // rate-limit declares requires: ["cache"]. Even when cache is listed
+    // later in the array, the runtime reorders so cache installs first.
+    const result = await installPlugins(
+      [
+        rateLimit({ mutations: { limit: 10, window: "1m" } }),
+        memoryCache({})
+      ],
+      app,
+      ctx
+    );
+    expect(result.installedIds).toEqual(["cache", "rate-limit"]);
   });
 
   it("throws when two distinct AuthPlugins are installed", async () => {

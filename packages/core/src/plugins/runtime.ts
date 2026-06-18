@@ -35,41 +35,54 @@ function phaseOf<Collections extends CMSCollections>(plugin: Plugin<Collections>
 
 const PHASE_ORDER: readonly MountPhase[] = ["early", "normal", "catchAll"];
 
+/**
+ * Validate the plugin array and return a stable install order.
+ *
+ * Auto-orders plugins by their `requires` graph using Kahn's algorithm —
+ * users no longer need to hand-order the array. Phase ordering
+ * (`early -> normal -> catchAll`) is applied on top of the topological
+ * sort, so within a phase the topo order is preserved.
+ *
+ * Validation, in order:
+ *   1. Every plugin has an `id`, no duplicates.
+ *   2. Every `requires` entry references a plugin that's installed.
+ *   3. No `requires` cycle exists.
+ *   4. No cross-phase requirement violation (e.g. `early` cannot require
+ *      `normal` — phases run in fixed order, so the require could never
+ *      be satisfied).
+ *   5. At most one AuthPlugin.
+ *   6. At most one `mountPhase: "catchAll"`.
+ */
 export function validateAndOrder<Collections extends CMSCollections>(
   plugins: readonly Plugin<Collections>[]
 ): readonly Plugin<Collections>[] {
-  const ids = new Map<string, number>();
+  // -- 1. ID validation -------------------------------------------------------
+  const idToIndex = new Map<string, number>();
   for (const [index, plugin] of plugins.entries()) {
     if (!plugin.id) {
       throw new CMSPluginError(`Plugin at index ${index} has no \`id\`.`);
     }
-    if (ids.has(plugin.id)) {
+    if (idToIndex.has(plugin.id)) {
       throw new CMSPluginError(
-        `Duplicate plugin id "${plugin.id}" at indices ${ids.get(plugin.id)} and ${index}.`
+        `Duplicate plugin id "${plugin.id}" at indices ${idToIndex.get(plugin.id)} and ${index}.`
       );
     }
-    ids.set(plugin.id, index);
+    idToIndex.set(plugin.id, index);
   }
 
-  for (const [index, plugin] of plugins.entries()) {
-    if (!plugin.requires) continue;
-    for (const requiredId of plugin.requires) {
-      const requiredIndex = ids.get(requiredId);
-      if (requiredIndex === undefined) {
+  // -- 2. Missing-dep validation ---------------------------------------------
+  for (const plugin of plugins) {
+    for (const requiredId of plugin.requires ?? []) {
+      if (!idToIndex.has(requiredId)) {
         throw new CMSPluginError(
           `Plugin "${plugin.id}" requires "${requiredId}" which is not installed. ` +
-          `Add it to \`plugins: [...]\` before "${plugin.id}".`
-        );
-      }
-      if (requiredIndex >= index) {
-        throw new CMSPluginError(
-          `Plugin "${plugin.id}" requires "${requiredId}" which appears later in the array ` +
-          `(index ${requiredIndex} vs ${index}). Move "${requiredId}" before "${plugin.id}".`
+          `Add it to \`plugins: [...]\`.`
         );
       }
     }
   }
 
+  // -- 3. AuthPlugin / catchAll cardinality ---------------------------------
   const authPlugins = plugins.filter((p) => isAuthPlugin(p));
   if (authPlugins.length > 1) {
     throw new CMSPluginError(
@@ -88,9 +101,77 @@ export function validateAndOrder<Collections extends CMSCollections>(
     );
   }
 
+  // -- 4. Cross-phase require check -----------------------------------------
+  // Phases run in fixed order (early -> normal -> catchAll), so a require
+  // that points to a later phase can never be satisfied. Reject explicitly
+  // rather than silently violate the require after re-grouping.
+  const phaseRank: Record<MountPhase, number> = { early: 0, normal: 1, catchAll: 2 };
+  for (const plugin of plugins) {
+    for (const requiredId of plugin.requires ?? []) {
+      const required = plugins[idToIndex.get(requiredId)!]!;
+      if (phaseRank[phaseOf(required)] > phaseRank[phaseOf(plugin)]) {
+        throw new CMSPluginError(
+          `Plugin "${plugin.id}" (phase "${phaseOf(plugin)}") requires "${requiredId}" ` +
+          `(phase "${phaseOf(required)}") which runs in a later phase. Move "${requiredId}" ` +
+          `to an equal-or-earlier phase, or drop the require.`
+        );
+      }
+    }
+  }
+
+  // -- 5. Topological sort (Kahn's algorithm) -------------------------------
+  // Build adjacency: edges go from required -> requirer (so an in-edge means
+  // "I have an unmet dependency").
+  const inDegree = new Map<string, number>();
+  const dependents = new Map<string, string[]>();
+  for (const plugin of plugins) {
+    inDegree.set(plugin.id, 0);
+    dependents.set(plugin.id, []);
+  }
+  for (const plugin of plugins) {
+    for (const requiredId of plugin.requires ?? []) {
+      inDegree.set(plugin.id, (inDegree.get(plugin.id) ?? 0) + 1);
+      dependents.get(requiredId)!.push(plugin.id);
+    }
+  }
+
+  // Stable topo: walk the original array in order. When a plugin's
+  // dependencies are all satisfied, push it and decrement its dependents'
+  // counts in the same pass — so a plugin that only depends on the *previous*
+  // entry naturally lands in its original slot. This preserves user-array
+  // ordering for plugins whose dependencies happen to already precede them
+  // (the common case), and only relocates plugins whose required predecessor
+  // appears later.
+  const sorted: Plugin<Collections>[] = [];
+  const consumed = new Set<string>();
+  while (sorted.length < plugins.length) {
+    let progress = false;
+    for (const plugin of plugins) {
+      if (consumed.has(plugin.id)) continue;
+      if ((inDegree.get(plugin.id) ?? 0) !== 0) continue;
+      sorted.push(plugin);
+      consumed.add(plugin.id);
+      progress = true;
+      for (const dep of dependents.get(plugin.id) ?? []) {
+        inDegree.set(dep, (inDegree.get(dep) ?? 0) - 1);
+      }
+    }
+    if (!progress) {
+      const stuck = plugins
+        .filter((p) => !consumed.has(p.id))
+        .map((p) => `"${p.id}"`)
+        .join(", ");
+      throw new CMSPluginError(
+        `Circular \`requires\` dependency among plugins: ${stuck}. ` +
+        `Break the cycle by removing one of the entries from a plugin's \`requires\` array.`
+      );
+    }
+  }
+
+  // -- 6. Re-apply phase grouping on top of the topo order ------------------
   const grouped: Plugin<Collections>[] = [];
   for (const phase of PHASE_ORDER) {
-    for (const plugin of plugins) {
+    for (const plugin of sorted) {
       if (phaseOf(plugin) === phase) grouped.push(plugin);
     }
   }

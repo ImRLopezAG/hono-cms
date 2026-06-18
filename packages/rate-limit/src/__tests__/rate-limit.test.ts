@@ -241,15 +241,16 @@ describe("rateLimit() install ordering", () => {
     ).rejects.toBeInstanceOf(CMSPluginError);
   });
 
-  test("throws when the cache plugin appears AFTER rate-limit in the array", async () => {
+  test("auto-orders cache before rate-limit even if listed after (topo sort)", async () => {
+    // installPlugins now reorders by `requires` instead of rejecting. Users
+    // get the right install order regardless of the array shape.
     const { app, ctx } = newCtxAndApp();
-    await expect(
-      installPlugins(
-        [rateLimit({ auth: { limit: 1, window: "1 m" } }), memoryCache({})],
-        app,
-        ctx
-      )
-    ).rejects.toBeInstanceOf(CMSPluginError);
+    const result = await installPlugins(
+      [rateLimit({ auth: { limit: 1, window: "1 m" } }), memoryCache({})],
+      app,
+      ctx
+    );
+    expect(result.installedIds).toEqual(["cache", "rate-limit"]);
   });
 
   test("installs cleanly when cache appears before rate-limit", async () => {
