@@ -1230,7 +1230,7 @@ function authActionParameters(): unknown[] {
     name: "action",
     in: "path",
     required: true,
-    description: "Provider-specific auth action mounted below /api/auth. Built-in providers support login and session; better-auth instances may expose additional actions.",
+    description: "Provider-specific auth action mounted below /api/auth (e.g. login, session, get-session). The exact set depends on the installed AuthPlugin.",
     schema: { type: "string", examples: ["login", "session", "get-session"] }
   }];
 }
