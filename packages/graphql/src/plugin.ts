@@ -107,8 +107,14 @@ export function graphql(opts: GraphQLPluginConfig = {}): Plugin {
       };
 
       const serveGraphQL = async (request: Request): Promise<Response> => {
+        // Snapshot the current handler reference before any async work so the
+        // request keeps using whichever Apollo handler was live at request
+        // start, even if `rebuild()` swaps `handler` mid-request. JS's
+        // single-threaded event loop guarantees this assignment is atomic
+        // with respect to concurrent rebuilds on Node/Workers/Edge.
+        const currentHandler = handler;
         const requestContext = await buildContext(request);
-        return handler(request, requestContext);
+        return currentHandler(request, requestContext);
       };
 
       const serveSDL = (): Response =>
@@ -146,7 +152,13 @@ async function resolveIdentity(
   //  - On the `AuthPlugin` manifest itself (the R15 contract). The kernel
   //    doesn't auto-register manifests on the service registry today, so this
   //    branch is reserved for plugins that explicitly register themselves.
-  const candidate = ctx.plugins.get<{ identity?: IdentityResolver }>(AUTH_TOKENS_PLUGIN_ID);
+  //
+  // `"auth-tokens"` lives in `@hono-cms/auth-tokens`'s own module
+  // augmentation (different AuthPlugin vendors publish different shapes), so
+  // when an app imports `tokensAuth` the registry returns the typed
+  // `TokensAuthService` here automatically. graphql doesn't hard-depend on
+  // auth-tokens, so we duck-type to the resolver-only shape we actually use.
+  const candidate = ctx.plugins.get("auth-tokens") as { identity?: IdentityResolver } | undefined;
   const resolver = typeof candidate?.identity === "function" ? candidate.identity : undefined;
   if (!resolver) return null;
   try {
